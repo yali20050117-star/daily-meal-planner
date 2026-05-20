@@ -163,6 +163,10 @@
   .dish-label--soup { background: #e0ecfa; color: #3d5990; }
   .dish-label--staple { background: #fef3d8; color: #8a6d30; }
   .dish-label--main,.dish-label--bf { background: #ffe8d6; color: #c05a20; }
+  .dish-label--dessert { background: #fce4ec; color: #b8485a; }
+  .dish-label--drink { background: #e0f2f1; color: #2e7d5c; }
+
+  .meal-card--treat .meal-card__header { background: #fef0f6; color: #b05060; border-bottom: 2px solid #f8d4e0; }
 
   .dish-name { font-size: 0.92rem; color: var(--text); line-height: 1.5; padding-right: 20px; }
   .dish-desc { font-size: 0.76rem; color: var(--text-light); margin-top: 1px; }
@@ -278,6 +282,7 @@
   <button class="btn btn-outline" onclick="randomizeMeal('morning')">重抽早餐</button>
   <button class="btn btn-outline" onclick="randomizeMeal('noon')">重抽午饭</button>
   <button class="btn btn-outline" onclick="randomizeMeal('night')">重抽晚饭</button>
+  <button class="btn btn-outline" onclick="randomizeMeal('treat')">重抽甜品饮品</button>
   <button class="btn btn-weekly" id="btnWeekly" onclick="toggleWeeklyView()">📅 周计划</button>
 </div>
 
@@ -606,6 +611,110 @@ const DISH_DB = {
     { name: "薏米粥" }, { name: "小米红薯粥" }, { name: "南瓜小米粥" },
     { name: "红豆莲子粥" }, { name: "疙瘩汤" }, { name: "面片汤" },
   ],
+  desserts: [
+    { name: "芒果椰汁西米露", desc: "热带风情冰凉甜品" },
+    { name: "红豆双皮奶", desc: "奶香浓郁红豆绵密" },
+    { name: "杨枝甘露", desc: "芒果西柚西米椰浆" },
+    { name: "银耳莲子羹", desc: "润肺安神温润甜汤" },
+    { name: "桂花酒酿圆子", desc: "酒酿酸甜糯米软糯" },
+    { name: "芋圆烧仙草", desc: "Q弹芋圆清凉消暑" },
+    { name: "绿豆沙", desc: "清热解毒夏日经典" },
+    { name: "红豆沙汤圆", desc: "甜而不腻温暖身心" },
+    { name: "抹茶布丁", desc: "抹茶清香丝滑口感" },
+    { name: "焦糖布丁", desc: "焦糖脆壳奶香嫩滑" },
+    { name: "椰汁糕", desc: "椰香浓郁入口即化" },
+    { name: "马蹄糕", desc: "清甜爽口弹牙" },
+    { name: "双皮奶", desc: "顺德经典奶香浓郁" },
+    { name: "姜撞奶", desc: "姜汁与牛奶的奇妙凝固" },
+    { name: "牛奶炖蛋", desc: "蒸制蛋奶细腻嫩滑" },
+    { name: "冰糖雪梨", desc: "润肺止咳清甜滋润" },
+    { name: "龟苓膏", desc: "微苦回甘清热解毒" },
+    { name: "芒果糯米饭", desc: "泰式椰浆芒果糯米" },
+    { name: "驴打滚", desc: "糯米豆沙黄豆粉" },
+    { name: "豌豆黄", desc: "北京传统细腻豆香" },
+    { name: "桂花糯米藕", desc: "桂花蜜汁藕孔填糯米" },
+    { name: "艾窝窝", desc: "糯米包裹核桃芝麻馅" },
+    { name: "杏仁豆腐", desc: "杏仁清香冰凉滑嫩" },
+    { name: "黑芝麻糊", desc: "浓郁芝麻香养发黑发" },
+    { name: "花生糊", desc: "花生浓香暖胃暖心" },
+    { name: "核桃露", desc: "核桃研磨顺滑健脑" },
+    { name: "紫薯山药糕", desc: "紫薯山药天然健康" },
+    { name: "冰粉", desc: "四川清凉甜品配料丰富" },
+    { name: "凉糕", desc: "宜宾特色红糖浆浇淋" },
+    { name: "仙草冻", desc: "烧仙草熬制冷冻消暑" },
+    { name: "牛奶西米露", desc: "牛奶煮西米简单暖心" },
+    { name: "水果捞", desc: "椰奶或酸奶拌时令水果" },
+    { name: "草莓慕斯", desc: "草莓酸甜慕斯轻盈" },
+    { name: "提拉米苏", desc: "意式咖啡可可甜点" },
+    { name: "芝士蛋糕", desc: "纽约风格浓郁密实" },
+    { name: "蛋挞", desc: "酥皮蛋奶馅经典点心" },
+    { name: "菠萝包", desc: "港式酥皮甜面包" },
+    { name: "蛋黄酥", desc: "咸蛋黄豆沙层层酥皮" },
+    { name: "凤梨酥", desc: "台湾凤梨馅酥香可口" },
+    { name: "老婆饼", desc: "冬瓜蓉馅层层酥皮" },
+    { name: "绿豆糕", desc: "绿豆粉制细腻清甜" },
+    { name: "桂花糕", desc: "米粉蒸制桂花点缀" },
+    { name: "白糖糕", desc: "发酵米浆蒸制清甜" },
+    { name: "钵仔糕", desc: "粘米粉制弹牙小甜点" },
+    { name: "糖不甩", desc: "糯米团滚花生芝麻碎" },
+    { name: "萨其马", desc: "油炸面条糖浆凝结" },
+    { name: "糖炒栗子", desc: "秋冬暖手甜香" },
+    { name: "冰糖葫芦", desc: "山楂串裹脆糖衣" },
+    { name: "龙须糖", desc: "手工拉丝糖丝丝缕缕" },
+    { name: "鲜花饼", desc: "云南玫瑰花瓣为馅" },
+  ],
+  drinks: [
+    { name: "冰美式咖啡", desc: "无糖低卡提神首选" },
+    { name: "拿铁咖啡", desc: "浓缩咖啡+热牛奶" },
+    { name: "卡布奇诺", desc: "奶泡绵密咖啡香浓" },
+    { name: "抹茶拿铁", desc: "抹茶融合牛奶" },
+    { name: "热巧克力", desc: "可可粉+牛奶甜蜜暖身" },
+    { name: "柠檬气泡水", desc: "柠檬片+苏打水清爽" },
+    { name: "蜂蜜柚子茶", desc: "柚子清香蜂蜜甘甜" },
+    { name: "金桔柠檬茶", desc: "金桔+柠檬酸甜维C" },
+    { name: "百香果绿茶", desc: "百香果酸甜绿茶清香" },
+    { name: "茉莉花茶", desc: "茉莉花窨制清香雅致" },
+    { name: "龙井绿茶", desc: "西湖龙井清香回甘" },
+    { name: "铁观音", desc: "乌龙半发酵兰花香气" },
+    { name: "大红袍", desc: "岩茶岩韵醇厚回甘" },
+    { name: "普洱熟茶", desc: "醇厚顺滑消食解腻" },
+    { name: "菊花茶", desc: "清肝明目淡淡花香" },
+    { name: "玫瑰花茶", desc: "疏肝理气花气芬芳" },
+    { name: "桂圆红枣茶", desc: "补气血暖宫暖身" },
+    { name: "姜枣茶", desc: "姜辣枣甜驱寒暖胃" },
+    { name: "枸杞菊花茶", desc: "枸杞明目菊花清火" },
+    { name: "酸梅汤", desc: "乌梅山楂熬制生津止渴" },
+    { name: "冰糖雪梨饮", desc: "雪梨冰糖慢煮润肺" },
+    { name: "椰青水", desc: "天然椰子水清甜补电解质" },
+    { name: "甘蔗马蹄水", desc: "甘蔗马蹄煮水清甜润燥" },
+    { name: "绿豆汤", desc: "绿豆煮烂加糖清热消暑" },
+    { name: "红豆薏米水", desc: "祛湿消肿养生饮品" },
+    { name: "玉米须茶", desc: "玉米须煮水利尿消肿" },
+    { name: "大麦茶", desc: "烘烤大麦焦香无咖啡因" },
+    { name: "玄米茶", desc: "炒米+煎茶日式清香" },
+    { name: "伯爵红茶", desc: "佛手柑香气英式经典" },
+    { name: "港式奶茶", desc: "锡兰红茶+淡奶丝滑" },
+    { name: "泰式奶茶", desc: "手标红茶+炼乳浓郁" },
+    { name: "珍珠奶茶", desc: "木薯粉圆Q弹奶茶" },
+    { name: "杨枝甘露饮", desc: "芒果椰奶西柚粒冰饮" },
+    { name: "芒果冰沙", desc: "芒果+冰打碎绵密" },
+    { name: "草莓奶昔", desc: "草莓+牛奶+冰淇淋" },
+    { name: "香蕉奶昔", desc: "香蕉+牛奶天然甜香" },
+    { name: "牛油果奶昔", desc: "牛油果creamy口感" },
+    { name: "蓝莓酸奶饮", desc: "蓝莓+酸奶抗氧化物" },
+    { name: "养乐多绿茶", desc: "养乐多+绿茶清爽益生菌" },
+    { name: "咸柠七", desc: "咸柠檬+七喜港式经典" },
+    { name: "柠檬蜂蜜温水", desc: "早起一杯排毒养颜" },
+    { name: "热牛奶", desc: "睡前一杯助眠补钙" },
+    { name: "豆浆", desc: "黄豆现磨豆香浓郁" },
+    { name: "黑豆浆", desc: "黑豆研磨乌发养肾" },
+    { name: "五谷豆浆", desc: "多种谷物+黄豆研磨" },
+    { name: "杏仁奶", desc: "杏仁研磨植物奶" },
+    { name: "燕麦奶", desc: "燕麦酶解天然微甜" },
+    { name: "椰奶", desc: "椰肉榨取浓郁椰香" },
+    { name: "可可奶", desc: "可可粉+牛奶微苦醇香" },
+    { name: "花生浆", desc: "花生研磨浓郁暖胃" },
+  ],
 };
 
 // ===================== 菜品详情数据库 =====================
@@ -649,6 +758,36 @@ const DISH_DETAILS = { /* ---- same as before, kept for brevity ---- */
   "蒸红薯":{ingredients:"红薯 2个",calories:"约 150 千卡/份",steps:"① 红薯洗净不去皮 ② 蒸锅上汽后中火蒸20-30分钟 ③ 筷子轻松穿透即可"},
   "小米粥":{ingredients:"小米 60g、清水 800ml",calories:"约 100 千卡/碗",steps:"① 小米轻淘一遍 ② 水开下小米 ③ 大火煮开转小火熬20分钟 ④ 关火焖5分钟出米油"},
   "八宝粥":{ingredients:"糯米/黑米/红豆/绿豆/薏米/花生/红枣/莲子 各适量、冰糖",calories:"约 180 千卡/碗",steps:"① 豆类提前泡4小时 ② 所有谷物入锅加足水 ③ 大火烧开转小火熬1小时 ④ 加冰糖搅拌融化"},
+  // ---- 甜品 ----
+  "芒果椰汁西米露":{ingredients:"芒果 1个、椰浆 200ml、西米 50g、冰糖、牛奶",calories:"约 220 千卡/份",steps:"① 西米煮至透明过冷水 ② 芒果一半打泥一半切丁 ③ 椰浆+牛奶+冰糖小火加热 ④ 碗中放入西米芒果泥淋椰奶放芒果丁"},
+  "杨枝甘露":{ingredients:"芒果 2个、西柚 半个、西米 50g、椰浆 150ml、炼乳、牛奶",calories:"约 250 千卡/份",steps:"① 西米煮至透明过冷水 ② 芒果打泥+椰浆炼乳拌匀 ③ 西柚剥小粒 ④ 杯中放西米→芒果椰奶→西柚粒→芒果丁"},
+  "红豆双皮奶":{ingredients:"全脂牛奶 400ml、鸡蛋清 2个、白糖 30g、红豆沙",calories:"约 230 千卡/份",steps:"① 牛奶煮至微沸倒入碗中冷却结奶皮 ② 从边缘倒出牛奶留奶皮 ③ 牛奶+蛋清+糖搅匀过滤倒回碗中 ④ 盖保鲜膜蒸15分钟 ⑤ 冷藏后铺红豆沙"},
+  "银耳莲子羹":{ingredients:"银耳 1朵、莲子 30g、红枣 8颗、枸杞、冰糖",calories:"约 110 千卡/碗",steps:"① 银耳泡发2小时去蒂撕小朵 ② 银耳入锅大火煮开转小火炖30分钟 ③ 加莲子红枣炖20分钟 ④ 加冰糖枸杞煮5分钟"},
+  "抹茶布丁":{ingredients:"牛奶 300ml、淡奶油 100ml、抹茶粉 5g、白糖 40g、吉利丁片 8g",calories:"约 180 千卡/份",steps:"① 吉利丁冰水泡软 ② 牛奶+奶油+糖加热 ③ 抹茶粉用少量热水调开倒入牛奶 ④ 加吉利丁搅融过滤入模 ⑤ 冷藏4小时"},
+  "双皮奶":{ingredients:"全脂牛奶 500ml、鸡蛋清 3个、白糖 35g",calories:"约 200 千卡/份",steps:"① 牛奶煮至微沸分装小碗冷却结奶皮 ② 碗边戳口倒出牛奶留奶皮底 ③ 牛奶+蛋清+糖搅匀过滤 ④ 沿碗边倒回盖保鲜膜 ⑤ 蒸15分钟冷藏后食用"},
+  "姜撞奶":{ingredients:"老姜 50g、全脂牛奶 250ml、白糖 20g",calories:"约 160 千卡/份",steps:"① 老姜磨蓉挤出姜汁约15ml入碗底 ② 牛奶+糖加热至80℃(冒小泡) ③ 从高处将牛奶冲入姜汁中(不要搅) ④ 静置5分钟凝固即可"},
+  "冰糖雪梨":{ingredients:"雪梨 1个、冰糖 20g、枸杞、银耳(可选)",calories:"约 100 千卡/份",steps:"① 雪梨顶部切开做盖挖去芯 ② 放入冰糖枸杞 ③ 盖上梨盖入蒸锅 ④ 大火蒸30分钟至梨肉透明软烂"},
+  "桂花糯米藕":{ingredients:"莲藕 2节、糯米 100g、红糖 60g、桂花蜜、冰糖",calories:"约 240 千卡/份",steps:"① 糯米泡4小时 ② 藕去皮顶端切开灌入糯米(筷子压实) ③ 牙签固定顶端 ④ 入锅加红糖冰糖水炖2小时 ⑤ 取出切片淋桂花蜜"},
+  "黑芝麻糊":{ingredients:"黑芝麻 60g、糯米 30g、冰糖",calories:"约 200 千卡/碗",steps:"① 黑芝麻炒香糯米略炒 ② 用石磨或破壁机加水打成浆 ③ 过滤倒入锅中加冰糖 ④ 小火熬煮搅拌至浓稠即可"},
+  "蛋挞":{ingredients:"蛋挞皮 6个、牛奶 100ml、淡奶油 100ml、蛋黄 3个、白糖 35g",calories:"约 180 千卡/个",steps:"① 牛奶+奶油+糖加热搅化放凉 ② 加蛋黄搅匀过滤 ③ 蛋挞液倒入挞皮八分满 ④ 烤箱200℃烤20分钟至表面微焦"},
+  "芝士蛋糕":{ingredients:"奶油奶酪 250g、消化饼干 100g、黄油 50g、鸡蛋 2个、白糖 80g、柠檬汁",calories:"约 350 千卡/份",steps:"① 饼干碎+融化黄油铺底压平 ② 奶酪软化+糖打顺+蛋+柠檬汁拌匀 ③ 倒入模具 ④ 水浴法烤箱160℃烤50分钟 ⑤ 冷藏4小时以上"},
+  "冰粉":{ingredients:"冰粉籽 50g(或冰粉粉)、红糖、花生碎、葡萄干、山楂碎、芝麻、冰块",calories:"约 120 千卡/份",steps:"① 冰粉籽用纱布包好在凉白开中搓出浆 ② 静置2小时凝固 ③ 红糖加水煮化冷却 ④ 冰粉切块淋红糖水撒配料"},
+  "蛋黄酥":{ingredients:"中筋面粉 150g、低筋面粉 100g、猪油 85g、咸蛋黄 8个、红豆沙 200g",calories:"约 320 千卡/个",steps:"① 油皮(中粉+猪油+水)水皮(低粉+猪油)分别揉好醒30分钟 ② 咸蛋黄喷白酒烤5分钟 ③ 豆沙包蛋黄 ④ 油皮包水皮擀卷两次 ⑤ 包馅刷蛋黄液撒芝麻 ⑥ 180℃烤25分钟"},
+  // ---- 饮品 ----
+  "酸梅汤":{ingredients:"乌梅 8颗、山楂 10g、甘草 3片、陈皮 1块、桂花、冰糖",calories:"约 80 千卡/杯",steps:"① 乌梅山楂甘草陈皮洗净 ② 加1.5L水泡30分钟 ③ 大火煮开转小火熬30分钟 ④ 加冰糖熬化过滤 ⑤ 撒桂花冷藏后饮用"},
+  "港式奶茶":{ingredients:"锡兰红茶粉 20g、黑白淡奶 150ml、白糖、水 400ml",calories:"约 150 千卡/杯",steps:"① 红茶粉放入茶袋 ② 水烧开冲入茶袋来回拉茶8次 ③ 小火煮茶10分钟再拉3次 ④ 杯中先倒淡奶再冲入热茶 ⑤ 加糖搅匀"},
+  "珍珠奶茶":{ingredients:"木薯粉圆 80g、红茶、牛奶或奶粉、红糖",calories:"约 280 千卡/杯",steps:"① 珍珠煮20分钟焖20分钟过凉水加红糖拌匀 ② 泡浓红茶+热牛奶 ③ 杯中放珍珠→冰块→奶茶 ④ 封口或直接饮用"},
+  "柠檬气泡水":{ingredients:"柠檬 半个、苏打水 330ml、蜂蜜、冰块、薄荷叶",calories:"约 30 千卡/杯",steps:"① 柠檬切片挤汁入杯 ② 加蜂蜜搅匀 ③ 加冰块倒入冰苏打水 ④ 放柠檬片和薄荷叶装饰"},
+  "蜂蜜柚子茶":{ingredients:"柚子 1个、蜂蜜 200g、冰糖 100g",calories:"约 90 千卡/杯",steps:"① 柚子皮刮去白瓤切细丝焯水 ② 柚子肉掰小块 ③ 柚子皮+肉+冰糖小火熬40分钟至粘稠 ④ 放凉拌入蜂蜜 ⑤ 每次取2勺冲泡"},
+  "抹茶拿铁":{ingredients:"抹茶粉 3g、牛奶 250ml、白糖(可选)",calories:"约 130 千卡/杯",steps:"① 抹茶粉过筛入杯 ② 加30ml热水搅至无颗粒 ③ 牛奶加热打奶泡 ④ 热牛奶倒入抹茶中 ⑤ 淋上奶泡"},
+  "绿豆汤":{ingredients:"绿豆 100g、冰糖、水 1.5L",calories:"约 120 千卡/碗",steps:"① 绿豆洗净泡1小时 ② 冷水下锅大火烧开 ③ 转小火煮20分钟至绿豆开花 ④ 加冰糖调味 ⑤ 冷藏后消暑更佳"},
+  "桂圆红枣茶":{ingredients:"桂圆干 10颗、红枣 6颗、枸杞、红糖",calories:"约 100 千卡/杯",steps:"① 桂圆干去壳红枣去核 ② 所有材料入壶加沸水 ③ 焖泡10分钟 ④ 加红糖调味"},
+  "牛油果奶昔":{ingredients:"牛油果 1个、香蕉 半根、牛奶 200ml、蜂蜜",calories:"约 280 千卡/杯",steps:"① 牛油果挖出果肉香蕉切段 ② 所有材料入搅拌机 ③ 加冰打至顺滑 ④ 倒入杯中即可"},
+  "拿铁咖啡":{ingredients:"浓缩咖啡液 30ml(或速溶咖啡)、牛奶 200ml",calories:"约 120 千卡/杯",steps:"① 萃取意式浓缩咖啡 ② 牛奶加热至65℃打奶泡 ③ 杯中先倒咖啡 ④ 倒入热牛奶 ⑤ 顶部放奶泡"},
+  "百香果绿茶":{ingredients:"百香果 1个、绿茶包 1个、蜂蜜、柠檬、冰块",calories:"约 60 千卡/杯",steps:"① 绿茶包泡水冷却 ② 百香果切开挖出果肉 ③ 杯中放百香果+蜂蜜+柠檬汁+冰块 ④ 倒入冷绿茶搅匀"},
+  "五谷豆浆":{ingredients:"黄豆 40g、黑豆/红豆/小米/燕麦共 30g、水 800ml、糖",calories:"约 160 千卡/杯",steps:"① 豆类谷物提前泡6小时 ② 所有材料入豆浆机加水 ③ 启动五谷豆浆模式 ④ 过滤加糖饮用"},
+  "椰青水":{ingredients:"新鲜椰子 1个(或椰子水)",calories:"约 45 千卡/杯",steps:"① 椰子顶部开口 ② 插入吸管直接饮用 ③ 或倒出冷藏后更清甜"},
+  "茉莉花茶":{ingredients:"茉莉花茶 3g、85℃热水 300ml",calories:"约 5 千卡/杯",steps:"① 茶具温热 ② 放入茉莉花茶 ③ 85℃水冲泡(不要沸水) ④ 第一泡10秒倒掉洗茶 ⑤ 第二泡1分钟出汤"},
 };
 
 // ===================== 饮食属性引擎 =====================
@@ -724,6 +863,11 @@ function getDishDetailsCompat(dishName, category) {
   if (kw.includes('清蒸')||kw.includes('蒸')) steps='① 食材处理腌制 ② 入蒸锅水开大火蒸制 ③ 出锅淋蒸鱼豉油 ④ 撒葱姜丝浇滚油';
   else if (kw.includes('红烧')) steps='① 主料焯水 ② 炒糖色下主料上色 ③ 加生抽老抽香料 ④ 炖煮至软烂 ⑤ 大火收汁';
   else if (kw.includes('清炒')||kw.includes('蒜蓉')) steps='① 食材洗净切好 ② 热油爆香蒜末 ③ 大火下食材快速翻炒 ④ 加盐出锅保持清脆';
+  if (kw.includes('茶')||kw.includes('饮')||kw.includes('咖')) { mainIng='茶叶/咖啡'; cal='约 40 千卡/杯'; steps='① 准备茶叶/咖啡 ② 热水冲泡(温度视种类而定) ③ 闷泡/萃取适当时间 ④ 过滤/直接饮用'; }
+  else if (kw.includes('奶昔')||kw.includes('冰沙')) { mainIng='水果+牛奶'; cal='约 200 千卡/杯'; steps='① 水果切块 ② 所有材料入搅拌机 ③ 加冰打至顺滑 ④ 倒入杯中即可'; }
+  else if (kw.includes('糕')||kw.includes('酥')||kw.includes('饼')||kw.includes('包')) { mainIng='面粉+黄油+糖'; cal='约 250 千卡/份'; steps='① 准备面皮和馅料 ② 揉面醒面 ③ 包馅整形 ④ 入烤箱烘烤至金黄 ⑤ 冷却后食用'; }
+  else if (kw.includes('奶')||kw.includes('布丁')||kw.includes('慕斯')) { mainIng='牛奶+奶油+糖'; cal='约 180 千卡/份'; steps='① 牛奶/奶油加热 ② 加糖和凝固剂 ③ 过滤入模 ④ 冷藏至凝固'; }
+  else if (kw.includes('糖')||kw.includes('蜜')||kw.includes('甜')||kw.includes('冰粉')||kw.includes('仙草')) { mainIng='糖+天然食材'; cal='约 130 千卡/份'; steps='① 准备主要食材 ② 加糖和水熬煮 ③ 冷却/冰镇 ④ 搭配配料食用'; }
   let ingredients = mainIng + '、葱姜蒜、生抽、盐、食用油';
   return { ingredients, calories: cal, steps };
 }
@@ -943,6 +1087,7 @@ function computeDailyCalories(dayMenu) {
     dayMenu.breakfast,
     dayMenu.lunchMeatItem, dayMenu.lunchVeggieItem, dayMenu.lunchStapleItem,
     dayMenu.dinnerVeggieItem, dayMenu.dinnerSoupItem, dayMenu.dinnerStapleItem,
+    dayMenu.dessertItem, dayMenu.drinkItem,
   ];
   for (const item of items) {
     if (item && item.name) total += estimateCalories(item);
@@ -981,6 +1126,8 @@ function generateDayMenu() {
     dinnerVeggieItem: smartPick(DISH_DB.dinnerVeggie, 'veggie'),
     dinnerSoupItem: smartPick(DISH_DB.dinnerSoup, 'soup'),
     dinnerStapleItem: smartPick(DISH_DB.dinnerStaple, 'staple'),
+    dessertItem: smartPick(DISH_DB.desserts, 'dessert'),
+    drinkItem: smartPick(DISH_DB.drinks, 'drink'),
   };
 }
 
@@ -1066,7 +1213,7 @@ function renderWeek() {
     const isToday = d === todayIdx;
     html += `<div class="week-col">
       <div class="week-col__header${isToday ? ' today' : ''}">${DAY_LABELS[d]}${isToday ? ' ⭐' : ''}</div>`;
-    ['breakfast','lunch','dinner'].forEach((meal, mi) => {
+    ['breakfast','lunch','dinner','treat'].forEach((meal, mi) => {
       let items = [];
       if (meal === 'breakfast' && day) {
         items = [{label:'早',name:day.breakfast?.name||'',cal:day.breakfast?estimateCalories(day.breakfast):0}];
@@ -1082,6 +1229,11 @@ function renderWeek() {
           {label:'汤',name:day.dinnerSoupItem?.name||'',cal:day.dinnerSoupItem?estimateCalories(day.dinnerSoupItem):0},
           {label:'主',name:day.dinnerStapleItem?.name||'',cal:day.dinnerStapleItem?estimateCalories(day.dinnerStapleItem):0},
         ];
+      } else if (meal === 'treat' && day) {
+        items = [
+          {label:'甜',name:day.dessertItem?.name||'',cal:day.dessertItem?estimateCalories(day.dessertItem):0},
+          {label:'饮',name:day.drinkItem?.name||'',cal:day.drinkItem?estimateCalories(day.drinkItem):0},
+        ];
       }
       if (!day) items = [];
       html += `<div class="week-slot" data-day="${d}" data-meal="${meal}"
@@ -1091,7 +1243,7 @@ function renderWeek() {
         ondragleave="handleDragLeave(event)"
         ondrop="handleDrop(event,'${d}','${meal}')"
         ondblclick="rerollWeekSlot('${d}','${meal}')">`;
-      html += `<div class="week-slot__label">${meal==='breakfast'?'🌅 早餐':meal==='lunch'?'☀️ 午饭':'🌙 晚饭'}</div>`;
+      html += `<div class="week-slot__label">${meal==='breakfast'?'🌅 早餐':meal==='lunch'?'☀️ 午饭':meal==='dinner'?'🌙 晚饭':'🍰 甜品饮品'}</div>`;
       if (items.length === 0) {
         html += `<div class="week-slot__empty">— 未生成 —</div>`;
       } else {
@@ -1154,6 +1306,10 @@ function cloneMealSlot(day, meal) {
     dinnerSoupItem: day.dinnerSoupItem?{...day.dinnerSoupItem}:null,
     dinnerStapleItem: day.dinnerStapleItem?{...day.dinnerStapleItem}:null,
   };
+  if (meal === 'treat') return {
+    dessertItem: day.dessertItem?{...day.dessertItem}:null,
+    drinkItem: day.drinkItem?{...day.drinkItem}:null,
+  };
   return null;
 }
 
@@ -1168,6 +1324,9 @@ function setMealSlot(day, meal, data) {
     day.dinnerVeggieItem = data.dinnerVeggieItem;
     day.dinnerSoupItem = data.dinnerSoupItem;
     day.dinnerStapleItem = data.dinnerStapleItem;
+  } else if (meal === 'treat') {
+    day.dessertItem = data.dessertItem;
+    day.drinkItem = data.drinkItem;
   }
 }
 
@@ -1230,6 +1389,10 @@ function renderAll() {
     { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem.name,   desc:d.dinnerSoupItem.desc },
     { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem.name, desc:d.dinnerStapleItem.desc||'' },
   ], 'dinner');
+  renderCard('cardTreat', [
+    { label:'甜品', labelClass:'dish-label--dessert', name:d.dessertItem?.name||'', desc:d.dessertItem?.desc||'' },
+    { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
+  ], 'treat');
   updateCalSummary();
 }
 
@@ -1296,7 +1459,7 @@ function randomizeAll() {
 }
 
 function randomizeMeal(meal) {
-  const prefix = meal==='morning'?'cardMorning':meal==='noon'?'cardNoon':'cardNight';
+  const prefix = meal==='morning'?'cardMorning':meal==='noon'?'cardNoon':meal==='night'?'cardNight':'cardTreat';
   const card = document.getElementById(prefix);
   if (card) card.querySelectorAll('.flip-inner.flipped').forEach(el => {
     el.classList.remove('flipped'); el.style.height='';
@@ -1328,6 +1491,14 @@ function randomizeMeal(meal) {
         { label:'主食', labelClass:'dish-label--staple', name:currentDay.dinnerStapleItem.name, desc:currentDay.dinnerStapleItem.desc||'' },
       ], 'dinner');
       break;
+    case 'treat':
+      currentDay.dessertItem = smartPick(DISH_DB.desserts, 'dessert');
+      currentDay.drinkItem = smartPick(DISH_DB.drinks, 'drink');
+      renderCard('cardTreat', [
+        { label:'甜品', labelClass:'dish-label--dessert', name:currentDay.dessertItem?.name||'', desc:currentDay.dessertItem?.desc||'' },
+        { label:'饮品', labelClass:'dish-label--drink',   name:currentDay.drinkItem?.name||'',   desc:currentDay.drinkItem?.desc||'' },
+      ], 'treat');
+      break;
   }
   updateCalSummary();
 }
@@ -1340,6 +1511,7 @@ function buildDOM() {
     { id:'cardMorning', cls:'meal-card--morning', icon:'🌅', title:'早餐 · 营养早餐', hint:'粗粮+蛋白+蔬果' },
     { id:'cardNoon',    cls:'meal-card--noon',    icon:'☀️', title:'午饭 · 一荤一素',   hint:'荤素搭配 + 主食' },
     { id:'cardNight',   cls:'meal-card--night',   icon:'🌙', title:'晚饭 · 一蔬一汤',   hint:'清淡养胃 + 主食' },
+    { id:'cardTreat',   cls:'meal-card--treat',   icon:'🍰', title:'甜品 & 饮品',      hint:'一甜一饮 · 锦上添花' },
   ];
   grid.innerHTML = cards.map(c => `
     <div class="meal-card ${c.cls}" id="${c.id}">
