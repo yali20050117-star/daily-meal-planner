@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日饭菜搭配 - 早中晚三餐科学搭配</title>
+<style>
+  :root {
+    --bg: #fdf6ec;
+    --card-bg: #fffef9;
+    --morning: #ff9a56;
+    --morning-light: #fff3e8;
+    --noon: #4caf7c;
+    --noon-light: #edf7f1;
+    --night: #6c7dd0;
+    --night-light: #eff1fb;
+    --text: #3e3640;
+    --text-light: #6b636e;
+    --border: #e8dfd3;
+    --shadow: 0 2px 12px rgba(60, 50, 40, 0.08);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: linear-gradient(160deg, #fef8f0 0%, #faf5eb 30%, #f3efe7 100%);
+    color: var(--text); min-height: 100vh; line-height: 1.6;
+  }
+  .header { text-align: center; padding: 28px 20px 8px; }
+  .header h1 {
+    font-size: 1.9rem; font-weight: 700;
+    background: linear-gradient(135deg, #e07b3c, #c06a30);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; letter-spacing: 1px;
+  }
+  .header .subtitle { color: var(--text-light); margin-top: 2px; font-size: 0.88rem; }
+
+  /* ---- Diet Mode Selector ---- */
+  .diet-bar {
+    display: flex; justify-content: center; gap: 6px; padding: 10px 20px 6px; flex-wrap: wrap;
+  }
+  .diet-pill {
+    font-size: 0.73rem; padding: 5px 13px; border-radius: 20px; border: 1px solid #e0d8c8;
+    background: #fff; cursor: pointer; user-select: none; transition: all 0.18s;
+    color: #8b7e70; white-space: nowrap; font-weight: 500;
+  }
+  .diet-pill:hover { border-color: #c0b898; background: #fdfaf5; }
+  .diet-pill.active {
+    background: #4caf7c; color: #fff; border-color: #4caf7c;
+    box-shadow: 0 2px 8px rgba(76,175,124,0.25); font-weight: 700;
+  }
+  .diet-pill.active--muscle { background: #e07b3c; border-color: #e07b3c; box-shadow: 0 2px 8px rgba(224,123,60,0.3); }
+  .diet-pill.active--vegan { background: #5a9a5a; border-color: #5a9a5a; box-shadow: 0 2px 8px rgba(90,154,90,0.25); }
+  .diet-pill.active--spicy { background: #d04040; border-color: #d04040; box-shadow: 0 2px 8px rgba(208,64,64,0.25); }
+
+  /* ---- Action Bar ---- */
+  .action-bar {
+    display: flex; justify-content: center; gap: 10px; padding: 6px 20px 14px; flex-wrap: wrap; align-items: center;
+  }
+  .btn {
+    padding: 9px 20px; border-radius: 50px; border: none; font-size: 0.88rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #f0985c, #e07b3c); color: #fff;
+    box-shadow: 0 4px 14px rgba(224, 123, 60, 0.35);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(224, 123, 60, 0.45); }
+  .btn-outline { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: #d0c5b5; background: #fafaf7; }
+  .btn-weekly {
+    background: #fff; color: #6c7dd0; border: 1.5px solid #c8cdf0; font-weight: 600;
+  }
+  .btn-weekly:hover { border-color: #a0a8e0; background: #f8f8ff; }
+  .btn-weekly.active { background: #eff1fb; border-color: #6c7dd0; color: #4856a0; box-shadow: 0 0 0 3px rgba(108,125,208,0.1); }
+
+  /* ---- Calorie Summary ---- */
+  .cal-summary {
+    text-align: center; padding: 0 20px 8px; font-size: 0.82rem; color: #9b8e80;
+    display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+  }
+  .cal-summary strong { color: var(--text); font-size: 1rem; }
+  .cal-summary .cal-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .cal-tag--low { background: #e2f0e2; color: #3d7040; }
+  .cal-tag--mid { background: #fef3d8; color: #8a6d30; }
+  .cal-tag--high { background: #fde8e4; color: #c04030; }
+
+  /* ---- View Toggle ---- */
+  .view-toggle { display: flex; justify-content: center; gap: 0; padding: 0 20px 8px; }
+  .view-toggle button {
+    font-size: 0.8rem; padding: 6px 18px; border: 1px solid #d0c8b8; background: #fff;
+    cursor: pointer; font-weight: 600; color: #8b7e70; transition: all 0.15s;
+  }
+  .view-toggle button:first-child { border-radius: 20px 0 0 20px; }
+  .view-toggle button:last-child { border-radius: 0 20px 20px 0; }
+  .view-toggle button.active { background: #4caf7c; color: #fff; border-color: #4caf7c; }
+
+  /* ---- Meals Grid (Daily) ---- */
+  .meals-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 18px; max-width: 1200px; margin: 0 auto; padding: 0 20px 36px;
+  }
+  .meal-card {
+    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+    border: 1px solid var(--border); overflow: visible; transition: transform 0.2s;
+  }
+  .meal-card:hover { transform: translateY(-2px); }
+  .meal-card__header {
+    padding: 14px 18px; display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 1.05rem; border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .meal-card__header .icon { font-size: 1.3rem; }
+  .meal-card--morning .meal-card__header { background: var(--morning-light); color: #c05a20; border-bottom: 2px solid #ffe0c8; }
+  .meal-card--noon    .meal-card__header { background: var(--noon-light);  color: #2e6b45; border-bottom: 2px solid #c8e8d2; }
+  .meal-card--night   .meal-card__header { background: var(--night-light); color: #4856a0; border-bottom: 2px solid #d4d8f2; }
+  .meal-card__body { padding: 10px 16px 14px; }
+
+  /* ---- 3D Flip ---- */
+  .flip-row { perspective: 800px; margin: 6px 0; transition: margin 0.3s; }
+  .flip-inner {
+    position: relative; width: 100%;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1), height 0.35s ease;
+    transform-style: preserve-3d; cursor: pointer;
+  }
+  .flip-inner.flipped { transform: rotateY(180deg); }
+  .flip-front, .flip-back {
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: var(--radius-sm); width: 100%;
+  }
+  .flip-front {
+    display: flex; align-items: flex-start; padding: 10px 12px;
+    background: #fefdfa; border: 1px dashed #f0ebe0;
+    transition: border-color 0.2s, box-shadow 0.2s; position: relative;
+  }
+  .flip-row:hover .flip-front { border-color: #d8cfc0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .flip-front::after {
+    content: "点击查看详情 ›"; position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%); font-size: 0.7rem; color: #c5bdb0; white-space: nowrap;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .flip-row:hover .flip-front::after { opacity: 1; }
+  .flip-back {
+    position: absolute; top: 0; left: 0; right: 0; transform: rotateY(180deg);
+    background: #fafaf7; border: 1.5px solid #e8dfd3; padding: 12px 14px;
+    overflow-y: auto; max-height: 260px;
+  }
+  .flip-back::-webkit-scrollbar { width: 4px; }
+  .flip-back::-webkit-scrollbar-thumb { background: #d8cfc0; border-radius: 4px; }
+  .detail-section { margin-bottom: 7px; }
+  .detail-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .detail-text { font-size: 0.8rem; color: var(--text); line-height: 1.5; }
+  .detail-calories { display: inline-block; background: #fff3e8; color: #d06828; font-weight: 700; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; }
+  .detail-steps { font-size: 0.78rem; color: #4a4a4a; line-height: 1.65; }
+  .flip-back-hint { font-size: 0.65rem; color: #bbb; text-align: right; margin-top: 4px; }
+
+  .dish-label { flex-shrink: 0; font-size: 0.75rem; font-weight: 700; padding: 2px 9px; border-radius: 20px; margin-right: 10px; margin-top: 1px; letter-spacing: 0.5px; }
+  .dish-label--meat { background: #fde8e4; color: #c04030; }
+  .dish-label--veggie { background: #e2f0e2; color: #3d7040; }
+  .dish-label--soup { background: #e0ecfa; color: #3d5990; }
+  .dish-label--staple { background: #fef3d8; color: #8a6d30; }
+  .dish-label--main,.dish-label--bf { background: #ffe8d6; color: #c05a20; }
+
+  .dish-name { font-size: 0.92rem; color: var(--text); line-height: 1.5; padding-right: 20px; }
+  .dish-desc { font-size: 0.76rem; color: var(--text-light); margin-top: 1px; }
+  .dish-cal-row { font-size: 0.7rem; color: #c06030; font-weight: 600; margin-top: 1px; }
+  .placeholder { text-align: center; color: #c5bfb5; padding: 20px 0; font-size: 0.9rem; }
+
+  /* ---- Weekly Planner ---- */
+  .weekly-container { display: none; max-width: 1300px; margin: 0 auto; padding: 0 16px 36px; }
+  .weekly-container.active { display: block; }
+  .weekly-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .week-col {
+    background: #fffef9; border-radius: 10px; border: 1px solid #e8dfd3;
+    overflow: hidden; min-width: 0;
+  }
+  .week-col__header {
+    text-align: center; padding: 8px 4px; font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.5px; border-bottom: 1px solid #f0ebe0;
+  }
+  .week-col__header.today { background: #fff8e8; color: #c06020; }
+  .week-slot {
+    padding: 6px 6px; border-bottom: 1px dashed #f0ebe0; cursor: pointer;
+    min-height: 48px; transition: background 0.15s; position: relative;
+  }
+  .week-slot:last-child { border-bottom: none; }
+  .week-slot:hover { background: #fdfaf5; }
+  .week-slot.drag-over { background: #e8f5ea; border: 2px dashed #4caf7c; border-radius: 6px; }
+  .week-slot.dragging { opacity: 0.4; }
+  .week-slot__label {
+    font-size: 0.63rem; font-weight: 700; color: #a09888; margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+  .week-slot__name { font-size: 0.78rem; color: var(--text); line-height: 1.35; word-break: break-all; }
+  .week-slot__empty { font-size: 0.68rem; color: #d0c8b8; font-style: italic; }
+  .week-slot__cal { font-size: 0.62rem; color: #b0a090; margin-top: 1px; }
+
+  /* ---- Fridge Panel ---- */
+  .fridge-toggle-btn {
+    background: #fff; color: #5a8a6a; border: 1.5px solid #b8d8c0;
+    position: relative; transition: all 0.2s;
+  }
+  .fridge-toggle-btn:hover { border-color: #8cc09a; background: #f6fdf8; }
+  .fridge-toggle-btn.active { background: #e8f5ea; border-color: #5a9a6a; color: #3d7040; box-shadow: 0 0 0 3px rgba(90,154,106,0.12); }
+  .fridge-toggle-btn .badge {
+    display: inline-block; background: #e07b3c; color: #fff; font-size: 0.68rem;
+    font-weight: 700; min-width: 18px; height: 18px; line-height: 18px;
+    border-radius: 9px; text-align: center; margin-left: 3px; padding: 0 5px;
+  }
+  .fridge-toggle-btn .badge:empty { display: none; }
+  .fridge-panel {
+    max-width: 1200px; margin: 0 auto; padding: 0 20px 10px;
+    max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0;
+  }
+  .fridge-panel.open { max-height: 500px; opacity: 1; }
+  .fridge-panel-inner { background: #fafaf6; border: 1px solid #e8dfd3; border-radius: var(--radius); padding: 14px 18px; }
+  .fridge-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .fridge-panel-header strong { font-size: 0.9rem; color: var(--text); }
+  .fridge-actions { display: flex; gap: 8px; }
+  .fridge-actions button { font-size: 0.7rem; padding: 3px 12px; border-radius: 20px; border: 1px solid #ddd; background: #fff; cursor: pointer; color: #888; transition: all 0.15s; }
+  .fridge-actions button:hover { border-color: #bbb; color: #555; }
+  .fridge-cat { margin-bottom: 8px; }
+  .fridge-cat-label { font-size: 0.68rem; font-weight: 700; color: #9b8e80; margin-bottom: 3px; }
+  .fridge-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .fridge-tag {
+    font-size: 0.74rem; padding: 4px 11px; border-radius: 20px; border: 1px solid #e0d8c8;
+    background: #fff; cursor: pointer; user-select: none; transition: all 0.18s; color: #6b6058; white-space: nowrap;
+  }
+  .fridge-tag:hover { border-color: #c0b898; background: #fdfaf3; }
+  .fridge-tag.selected { background: #e8f0e2; border-color: #7ab88a; color: #3d6a40; font-weight: 600; }
+  .fridge-status { font-size: 0.73rem; color: #9b8e80; margin-top: 8px; text-align: center; min-height: 18px; }
+  .fridge-status.match { color: #3d7040; }
+  .fridge-status.none { color: #c0a0a0; }
+
+  .footer { text-align: center; padding: 8px 20px 24px; color: #bfb9b0; font-size: 0.76rem; }
+
+  @media (max-width: 768px) {
+    .weekly-grid { grid-template-columns: repeat(4, 1fr); }
+    .week-col:nth-child(n+5) { margin-top: 8px; }
+  }
+  @media (max-width: 420px) {
+    .header h1 { font-size: 1.4rem; }
+    .meals-grid { grid-template-columns: 1fr; padding: 0 10px 28px; }
+    .weekly-grid { grid-template-columns: repeat(2, 1fr); }
+    .flip-front::after { display: none; }
+    .flip-back { padding: 10px 12px; }
+    .dish-name { font-size: 0.85rem; }
+    .diet-pill { font-size: 0.68rem; padding: 4px 9px; }
+    .fridge-tag { font-size: 0.68rem; padding: 3px 8px; }
+    .btn { font-size: 0.78rem; padding: 7px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>每日饭菜搭配</h1>
+  <p class="subtitle">科学搭配三餐，营养均衡每一天</p>
+</div>
+
+<!-- 饮食模式选择 -->
+<div class="diet-bar" id="dietBar">
+  <span class="diet-pill active" data-mode="balanced" onclick="setDietMode('balanced', this)">🍽️ 均衡</span>
+  <span class="diet-pill" data-mode="lowcal" onclick="setDietMode('lowcal', this)">🥗 减脂</span>
+  <span class="diet-pill" data-mode="muscle" onclick="setDietMode('muscle', this)">💪 增肌</span>
+  <span class="diet-pill" data-mode="vegan" onclick="setDietMode('vegan', this)">🌱 纯素</span>
+  <span class="diet-pill" data-mode="glutenfree" onclick="setDietMode('glutenfree', this)">🌾 无麸质</span>
+  <span class="diet-pill" data-mode="nospice" onclick="setDietMode('nospice', this)">🚫 免辣</span>
+  <span class="diet-pill" data-mode="spicy" onclick="setDietMode('spicy', this)">🌶️ 嗜辣</span>
+</div>
+
+<div class="action-bar">
+  <button class="btn btn-primary" onclick="randomizeAll()">🎲 每日饭菜抽选</button>
+  <button class="btn btn-outline fridge-toggle-btn" id="fridgeToggle" onclick="toggleFridge()">🧊 冰箱余粮<span class="badge" id="fridgeBadge"></span></button>
+  <button class="btn btn-outline" onclick="randomizeMeal('morning')">重抽早餐</button>
+  <button class="btn btn-outline" onclick="randomizeMeal('noon')">重抽午饭</button>
+  <button class="btn btn-outline" onclick="randomizeMeal('night')">重抽晚饭</button>
+  <button class="btn btn-weekly" id="btnWeekly" onclick="toggleWeeklyView()">📅 周计划</button>
+</div>
+
+<div class="view-toggle" id="viewToggle" style="display:none">
+  <button class="active" onclick="setViewMode('daily')">📋 单日视图</button>
+  <button onclick="setViewMode('weekly')">📅 周计划视图</button>
+</div>
+
+<div style="text-align:center;padding:0 20px 6px;display:none" id="weeklyActions">
+  <button class="btn btn-outline" onclick="generateWeek()" style="font-size:0.82rem;padding:7px 18px;">🎲 生成整周菜单</button>
+  <button class="btn btn-outline" onclick="clearWeek()" style="font-size:0.82rem;padding:7px 18px;">🗑 清空周计划</button>
+</div>
+
+<!-- 热量摘要 -->
+<div class="cal-summary" id="calSummary"></div>
+
+<!-- 冰箱余粮面板 -->
+<div class="fridge-panel" id="fridgePanel">
+  <div class="fridge-panel-inner">
+    <div class="fridge-panel-header">
+      <strong>🧊 冰箱余粮 — 勾选你手头现有的食材</strong>
+      <div class="fridge-actions">
+        <button onclick="selectFridgeAll()">全选</button>
+        <button onclick="clearFridge()">清空</button>
+      </div>
+    </div>
+    <div id="fridgeTags"></div>
+    <div class="fridge-status" id="fridgeStatus"></div>
+  </div>
+</div>
+
+<!-- 单日视图 -->
+<div class="meals-grid" id="mealsGrid"></div>
+
+<!-- 周计划视图 -->
+<div class="weekly-container" id="weeklyContainer">
+  <div class="weekly-grid" id="weeklyGrid"></div>
+</div>
+
+<div class="footer">菜品库持续更新中 · 每日随机搭配 · 仅供参考</div>
+
+<script>
+// ===================== 菜品数据库 =====================
+const DISH_DB = {
+  breakfast: [
+    { name: "小米南瓜粥 + 水煮蛋 + 蒸红薯", desc: "粗粮搭配，温和养胃，蛋白质丰富" },
+    { name: "燕麦牛奶粥 + 全麦面包 + 煎蛋", desc: "高纤维高蛋白，饱腹持久" },
+    { name: "皮蛋瘦肉粥 + 蒸饺(4只)", desc: "咸香开胃，荤素合理" },
+    { name: "豆浆 + 油条 + 茶叶蛋", desc: "经典搭配，豆类蛋白丰富" },
+    { name: "杂粮粥(黑米/红豆/薏米) + 蒸玉米", desc: "多谷物营养，润肠通便" },
+    { name: "牛奶 + 全麦三明治(鸡蛋火腿生菜)", desc: "西式均衡早餐，钙质充足" },
+    { name: "豆腐脑(咸) + 葱油饼", desc: "植物蛋白+碳水，暖胃舒适" },
+    { name: "鸡蛋灌饼 + 豆浆", desc: "外酥里嫩，蛋白碳水均衡" },
+    { name: "山药枸杞粥 + 奶黄包(2个)", desc: "山药健脾，枸杞明目" },
+    { name: "紫薯银耳粥 + 煮鸡蛋", desc: "花青素抗氧化，银耳润肺" },
+    { name: "八宝粥 + 小花卷(2个) + 拌黄瓜", desc: "八种谷物，营养全面" },
+    { name: "青菜肉丝面(清汤) + 荷包蛋", desc: "热汤面暖身，荤素搭配" },
+    { name: "馄饨(鲜肉8只) + 紫菜汤", desc: "皮薄馅鲜，汤清味美" },
+    { name: "鸡蛋羹 + 玉米馒头 + 凉拌木耳", desc: "嫩滑易消化，木耳清血管" },
+    { name: "莲子百合粥 + 蒸紫薯 + 白煮蛋", desc: "莲子养心安神，百合润肺" },
+    { name: "芝麻糊 + 全麦吐司 + 香蕉", desc: "黑芝麻补钙，香蕉补钾" },
+    { name: "红豆薏米粥 + 煮鹌鹑蛋(5个)", desc: "祛湿消肿，鹌鹑蛋营养浓缩" },
+    { name: "牛肉粉丝汤 + 烧饼", desc: "牛肉高蛋白，粉丝爽滑" },
+    { name: "煎饼果子(加蛋) + 豆浆", desc: "杂粮煎饼，蔬菜鸡蛋齐全" },
+    { name: "菜肉大馄饨(6只) + 蛋皮汤", desc: "菜肉均衡，热汤暖胃" },
+    { name: "黑米粥 + 肉松面包 + 苹果片", desc: "黑米补血，肉松增味" },
+    { name: "蒸红薯 + 白煮蛋 + 核桃仁 + 牛奶", desc: "粗粮蛋白坚果，三合一营养" },
+    { name: "小米红枣粥 + 蒸饺(韭菜鸡蛋)", desc: "红枣补气血，小米养胃" },
+    { name: "粢饭团(肉松/咸蛋黄) + 豆浆", desc: "糯米饱腹，咸香可口" },
+    { name: "鸡蛋炒河粉(少油) + 紫菜汤", desc: "河粉滑嫩，少油健康" },
+    { name: "玉米糊 + 小笼包(4只)", desc: "玉米清香，小笼鲜美" },
+    { name: "牛奶燕麦片 + 坚果碎 + 蓝莓", desc: "即食营养，抗氧化满分" },
+    { name: "南瓜小米粥 + 菜包子(2个)", desc: "南瓜胡萝卜素丰富，菜包清爽" },
+    { name: "蒸蛋 + 红糖馒头 + 凉拌海带丝", desc: "海带补碘，红糖暖身" },
+    { name: "过桥米线(清淡版)", desc: "鸡汤烫熟，配料丰富" },
+    { name: "酸奶 + 水果麦片 + 水煮蛋", desc: "益生菌+膳食纤维+蛋白" },
+    { name: "排骨粥 + 蒸玉米", desc: "排骨熬粥，鲜香滋补" },
+    { name: "肉夹馍 + 小米粥", desc: "腊汁肉香，小米养胃" },
+    { name: "生煎包(4只) + 豆浆", desc: "底脆肉鲜，经典早餐" },
+    { name: "鸡蛋软饼 + 花生豆浆", desc: "软糯香甜，花生的油脂增香" },
+    { name: "银耳莲子羹 + 小花卷 + 拌三丝", desc: "银耳润燥，莲子清心" },
+    { name: "蒸紫薯 + 蒸山药 + 煮蛋 + 热牛奶", desc: "四合一蒸品，天然营养" },
+    { name: "韭菜盒子(2个) + 小米粥", desc: "韭菜温补，盒子外酥里嫩" },
+    { name: "牛肉面(清汤) + 卤蛋", desc: "牛肉劲道，卤蛋增香" },
+    { name: "锅贴(5只) + 红枣豆浆", desc: "锅贴焦脆，红枣补血" },
+    { name: "菠菜鸡蛋面 + 几颗枸杞", desc: "菠菜补铁，枸杞名目" },
+    { name: "蛋挞(2个) + 热牛奶 + 小番茄", desc: "蛋奶香浓，番茄补充维C" },
+    { name: "蒸鸡胸肉丝 + 杂粮饭团 + 时蔬沙拉", desc: "高蛋白低脂，健身优选" },
+    { name: "肠粉(鸡蛋瘦肉) + 豆浆", desc: "广式经典，粉皮滑嫩" },
+    { name: "核桃黑芝麻糊 + 荷包蛋 + 蒸红薯", desc: "黑发养肾，健脑益智" },
+    { name: "肉松蛋饼 + 热豆浆", desc: "蛋香肉松香，简单满足" },
+    { name: "桂圆红枣粥 + 玉米窝窝头", desc: "桂圆安神，红枣补气血" },
+    { name: "蒸烧麦(糯米/鲜肉) + 紫菜蛋花汤", desc: "烧麦饱满，汤清解腻" },
+    { name: "全麦卷饼(鸡肉/生菜/番茄) + 酸奶", desc: "卷饼自由搭配，清爽健康" },
+    { name: "鸡汤小馄饨 + 卤鹌鹑蛋", desc: "鸡汤鲜美滋补，皮薄馅嫩" },
+  ],
+  lunchMeat: [
+    { name: "红烧肉", desc: "五花肉软糯香甜，入口即化" },
+    { name: "糖醋排骨", desc: "酸甜可口，排骨外酥里嫩" },
+    { name: "鱼香肉丝", desc: "酸甜微辣，木耳笋丝脆嫩" },
+    { name: "宫保鸡丁", desc: "鸡肉滑嫩，花生酥脆，香辣入味" },
+    { name: "回锅肉", desc: "五花肉焦香，蒜苗提味" },
+    { name: "水煮肉片", desc: "麻辣鲜香，肉片嫩滑" },
+    { name: "小炒肉", desc: "辣椒炒肉，香辣下饭" },
+    { name: "红烧排骨", desc: "酱香浓郁，骨酥肉烂" },
+    { name: "土豆烧牛肉", desc: "牛肉软烂，土豆绵密" },
+    { name: "可乐鸡翅", desc: "色泽红亮，甜咸适口" },
+    { name: "葱爆羊肉", desc: "葱香浓郁，羊肉鲜嫩不膻" },
+    { name: "孜然牛肉", desc: "孜然飘香，牛肉嫩滑" },
+    { name: "清蒸鲈鱼", desc: "鱼肉洁白鲜嫩，原汁原味" },
+    { name: "红烧带鱼", desc: "酱汁浓郁，鱼肉细腻" },
+    { name: "蒜蓉大虾", desc: "蒜香扑鼻，虾肉弹牙" },
+    { name: "可乐鸡腿", desc: "鸡腿软嫩入味，酱汁香甜" },
+    { name: "辣子鸡", desc: "干辣椒爆炒，外酥里嫩" },
+    { name: "梅菜扣肉", desc: "梅菜咸香，五花肉肥而不腻" },
+    { name: "粉蒸肉", desc: "米粉包裹，肉香软糯" },
+    { name: "东坡肉", desc: "慢火炖煮，五花肥而不腻" },
+    { name: "酱牛肉", desc: "酱香入味，切片筋道" },
+    { name: "椒盐排骨", desc: "外酥里嫩，椒盐提鲜" },
+    { name: "香辣虾", desc: "麻辣鲜香，虾肉饱满" },
+    { name: "剁椒鱼头", desc: "剁椒鲜辣，鱼头嫩滑" },
+    { name: "酸菜鱼", desc: "酸菜爽口，鱼片嫩滑" },
+    { name: "水煮鱼", desc: "麻辣沸腾，鱼肉鲜嫩" },
+    { name: "葱油鸡", desc: "葱油浇淋，鸡肉滑嫩" },
+    { name: "白切鸡", desc: "原味鲜美，蘸料提味" },
+    { name: "三杯鸡", desc: "一杯酱油一杯酒一杯油，浓香入味" },
+    { name: "香菇滑鸡", desc: "香菇增鲜，鸡肉嫩滑" },
+    { name: "黑椒牛柳", desc: "黑胡椒辛辣，牛肉嫩香" },
+    { name: "青椒肉丝", desc: "青椒爽脆，肉丝滑嫩" },
+    { name: "木须肉", desc: "鸡蛋木耳黄花菜炒肉，营养丰富" },
+    { name: "京酱肉丝", desc: "甜面酱炒制，配豆腐皮卷食" },
+    { name: "锅包肉", desc: "外脆里嫩，酸甜酱汁" },
+    { name: "溜肉段", desc: "外焦里嫩，咸鲜适口" },
+    { name: "红烧狮子头", desc: "大肉丸鲜嫩多汁，入口即化" },
+    { name: "蒜薹炒肉", desc: "蒜薹清香脆嫩，肉片入味" },
+    { name: "芹菜炒牛肉", desc: "芹菜脆爽，牛肉嫩滑" },
+    { name: "韭菜炒鸡蛋", desc: "经典家常，韭香蛋嫩" },
+    { name: "番茄炒蛋", desc: "酸甜可口，老少皆宜" },
+    { name: "虾仁滑蛋", desc: "虾仁弹牙，鸡蛋嫩滑" },
+    { name: "蚝油牛肉", desc: "蚝油提鲜，牛肉嫩滑" },
+    { name: "豉汁蒸排骨", desc: "豆豉飘香，排骨软嫩" },
+    { name: "油焖大虾", desc: "浓油赤酱，虾肉鲜甜" },
+    { name: "避风塘炒虾", desc: "蒜酥面包糠包裹，香脆可口" },
+    { name: "咖喱鸡", desc: "咖喱浓郁，鸡肉土豆软烂" },
+    { name: "黄焖鸡", desc: "酱香浓郁，鸡肉嫩滑" },
+    { name: "板栗烧鸡", desc: "板栗香甜，鸡肉鲜美" },
+    { name: "啤酒鸭", desc: "啤酒去腥增香，鸭肉酥烂" },
+    { name: "姜母鸭", desc: "老姜驱寒，鸭肉滋补" },
+    { name: "红烧羊肉", desc: "温补暖身，肉质酥烂" },
+    { name: "白萝卜炖羊肉", desc: "萝卜清甜解腻，羊肉温补" },
+    { name: "干煸豆角炒肉", desc: "豆角干香，肉末提味" },
+    { name: "糖醋里脊", desc: "酸甜酥脆，肉条金黄" },
+    { name: "红烧牛腩", desc: "牛腩软糯，番茄土豆入味" },
+    { name: "椒盐虾", desc: "外脆里鲜，椒盐干香" },
+    { name: "蒜香排骨", desc: "蒜香浓郁，外焦里嫩" },
+    { name: "叉烧肉", desc: "蜜汁香甜，肉质软嫩" },
+    { name: "红烧鸡块", desc: "酱香浓郁，土豆粉糯" },
+    { name: "葱姜炒蟹", desc: "蟹肉鲜美，葱姜去腥" },
+    { name: "清蒸鳊鱼", desc: "鱼肉细嫩，豉油提鲜" },
+    { name: "糖醋鱼块", desc: "外酥里嫩，酸甜可口" },
+    { name: "干烧黄鱼", desc: "酱烧入味，鱼肉鲜美" },
+    { name: "红烧鲳鱼", desc: "汁浓味厚，鱼肉滑嫩" },
+    { name: "香煎带鱼", desc: "外皮酥脆，鱼肉鲜嫩" },
+    { name: "葱油淋鱼片", desc: "滚油浇淋，葱香四溢" },
+    { name: "孜然羊肉", desc: "孜然飘香，羊肉外焦里嫩" },
+    { name: "青椒炒腊肉", desc: "腊肉咸香，青椒解腻" },
+    { name: "蒜苗炒腊肉", desc: "蒜苗清香，腊肉油润" },
+    { name: "爆炒猪肝", desc: "猪肝嫩滑，补血佳品" },
+    { name: "酸豆角炒肉末", desc: "酸豆角开胃，肉末香浓" },
+    { name: "尖椒炒鸡蛋", desc: "尖椒微辣，鸡蛋嫩香" },
+    { name: "肉末茄子", desc: "茄子软烂入味，肉末香浓" },
+    { name: "麻婆豆腐(加肉末)", desc: "麻辣鲜香，豆腐嫩滑" },
+    { name: "干煸鱿鱼须", desc: "干香麻辣，鱿鱼劲道" },
+    { name: "秋葵炒虾仁", desc: "清爽滑嫩，低脂高蛋白" },
+    { name: "西兰花炒虾仁", desc: "翠绿鲜嫩，营养均衡" },
+  ],
+  lunchVeggie: [
+    { name: "手撕包菜", desc: "大火爆炒，脆嫩爽口" },
+    { name: "酸辣土豆丝", desc: "酸辣开胃，土豆爽脆" },
+    { name: "清炒时蔬", desc: "应季鲜蔬，清淡健康" },
+    { name: "蒜蓉西兰花", desc: "蒜香浓郁，西兰花翠绿" },
+    { name: "香菇青菜", desc: "香菇鲜香，青菜清爽" },
+    { name: "地三鲜", desc: "土豆茄子青椒，三味融合" },
+    { name: "家常豆腐", desc: "外焦里嫩，酱香入味" },
+    { name: "干煸四季豆", desc: "干香微辣，下饭首选" },
+    { name: "蚝油生菜", desc: "蚝油提鲜，生菜脆嫩" },
+    { name: "蒜蓉空心菜", desc: "蒜香四溢，空心菜清脆" },
+    { name: "醋溜白菜", desc: "酸爽脆嫩，开胃解腻" },
+    { name: "清炒菠菜", desc: "菠菜补铁，清淡营养" },
+    { name: "红烧茄子", desc: "软烂入味，咸甜适口" },
+    { name: "鱼香茄子", desc: "鱼香味浓，茄子软糯" },
+    { name: "糖醋藕片", desc: "酸甜脆爽，莲藕润肺" },
+    { name: "清炒莲藕", desc: "清脆爽口，藕断丝连" },
+    { name: "白灼菜心", desc: "原味清甜，蚝油蘸食" },
+    { name: "上汤娃娃菜", desc: "高汤浸煮，娃娃菜鲜甜" },
+    { name: "清炒莴笋", desc: "莴笋脆嫩，色泽翠绿" },
+    { name: "木耳炒鸡蛋", desc: "木耳爽脆，鸡蛋嫩滑" },
+    { name: "西芹炒百合", desc: "西芹清脆，百合甘甜" },
+    { name: "清炒芦笋", desc: "芦笋鲜嫩，营养丰富" },
+    { name: "蒜蓉秋葵", desc: "秋葵滑嫩，蒜香提味" },
+    { name: "干锅花菜", desc: "干香微辣，花菜入味" },
+    { name: "清炒荷兰豆", desc: "脆嫩爽口，翠绿诱人" },
+    { name: "酸辣藕丁", desc: "酸辣脆爽，开胃下饭" },
+    { name: "凉拌黄瓜", desc: "清脆爽口，蒜醋调味" },
+    { name: "凉拌木耳", desc: "木耳脆爽，酸辣入味" },
+    { name: "皮蛋豆腐", desc: "冰凉爽滑，皮蛋添香" },
+    { name: "凉拌三丝", desc: "海带/胡萝卜/粉丝，清爽解腻" },
+    { name: "清炒茼蒿", desc: "茼蒿清香，养心安神" },
+    { name: "剁椒金针菇", desc: "剁椒鲜辣，金针菇滑嫩" },
+    { name: "香菇油菜", desc: "香菇油菜相得益彰" },
+    { name: "腐竹炒木耳", desc: "腐竹柔软，木耳脆爽" },
+    { name: "素炒三丝", desc: "土豆青椒胡萝卜，三色营养" },
+    { name: "清炒西葫芦", desc: "西葫芦清甜，嫩滑可口" },
+    { name: "松仁玉米", desc: "松仁香脆，玉米香甜" },
+    { name: "蛋黄焗南瓜", desc: "咸蛋黄包裹，南瓜香甜" },
+    { name: "孜然土豆块", desc: "外焦里绵，孜然飘香" },
+    { name: "蒜蓉蒸茄子", desc: "软嫩蒜香，清爽不腻" },
+    { name: "虎皮青椒", desc: "煎至虎皮纹，酱汁入味" },
+    { name: "豉汁蒸豆腐", desc: "豆豉鲜香，豆腐嫩滑" },
+    { name: "砂锅豆腐", desc: "慢火炖煮，豆腐入味" },
+    { name: "清炒豌豆苗", desc: "嫩苗清脆，营养丰富" },
+    { name: "蟹黄豆腐", desc: "咸蛋黄制蟹黄味，豆腐嫩滑" },
+    { name: "干煸土豆条", desc: "焦香麻辣，外酥里糯" },
+    { name: "糖醋面筋", desc: "酸甜筋道，口感独特" },
+    { name: "红烧素鸡", desc: "素鸡吸汁，酱香入味" },
+    { name: "葱油金针菇", desc: "滚油浇葱，金针菇爽滑" },
+    { name: "蚝油杏鲍菇", desc: "杏鲍菇肉感十足，蚝油提鲜" },
+    { name: "韭菜炒豆芽", desc: "双脆合璧，清爽可口" },
+    { name: "香椿炒蛋", desc: "香椿独特香气，春季限定" },
+    { name: "苦瓜炒蛋", desc: "苦瓜清热，蛋香中和" },
+    { name: "丝瓜炒蛋", desc: "丝瓜清甜滑嫩，蛋香浓郁" },
+    { name: "山药炒木耳", desc: "山药健脾，木耳清肺" },
+    { name: "荷塘小炒", desc: "莲藕木耳荷兰豆，清脆组合" },
+    { name: "拔丝红薯", desc: "外脆里糯，糖丝缕缕" },
+    { name: "蜜汁山药", desc: "山药软糯，桂花蜜香甜" },
+    { name: "清炒芥蓝", desc: "芥蓝脆嫩微苦，清热去火" },
+    { name: "白灼芥蓝", desc: "原味清脆，蘸蚝油食用" },
+    { name: "蒜蓉粉丝蒸娃娃菜", desc: "粉丝吸汁，娃娃菜鲜美" },
+    { name: "素炒合菜", desc: "多种时蔬混炒，营养丰富" },
+    { name: "葱烧豆腐", desc: "大葱烧制，豆腐入味" },
+    { name: "红烧腐竹", desc: "腐竹软嫩，酱香入味" },
+    { name: "拍黄瓜拌木耳", desc: "双脆凉拌，蒜醋开胃" },
+    { name: "松花蛋拌豆腐", desc: "松花蛋醇香，豆腐冰凉爽滑" },
+    { name: "凉拌莴笋丝", desc: "清脆爽口，麻油提香" },
+    { name: "蒜泥茄子", desc: "蒸后凉拌，蒜香浓郁" },
+  ],
+  lunchStaple: [
+    { name: "白米饭" }, { name: "紫米饭" }, { name: "糙米饭" }, { name: "小米饭" },
+    { name: "杂粮饭(糙米/燕麦/小米)" }, { name: "红薯饭" }, { name: "南瓜饭" },
+    { name: "蛋炒饭" }, { name: "扬州炒饭" }, { name: "馒头" }, { name: "花卷" },
+    { name: "杂粮馒头" }, { name: "葱油饼" }, { name: "手抓饼" }, { name: "烙饼" },
+    { name: "汤面" }, { name: "炸酱面" }, { name: "西红柿鸡蛋面" }, { name: "葱油拌面" },
+    { name: "油泼面" }, { name: "炒面" }, { name: "炒河粉" }, { name: "炒米粉" },
+    { name: "焖面" }, { name: "饺子(猪肉白菜)" }, { name: "饺子(韭菜鸡蛋)" },
+    { name: "包子(鲜肉)" }, { name: "馅饼" }, { name: "窝窝头" }, { name: "千层饼" },
+    { name: "凉皮" }, { name: "凉面" }, { name: "热干面" }, { name: "担担面" },
+    { name: "煲仔饭" }, { name: "卤肉饭" }, { name: "鸡腿饭" }, { name: "盖浇饭" },
+    { name: "小米红枣饭" }, { name: "玉米饭" },
+  ],
+  dinnerVeggie: [
+    { name: "清炒时蔬", desc: "应季鲜蔬，清淡适口" }, { name: "蒜蓉西兰花", desc: "蒜香浓郁，营养丰富" },
+    { name: "白灼菜心", desc: "原味清甜，蚝油蘸食" }, { name: "上汤娃娃菜", desc: "高汤浸煮，鲜美甘甜" },
+    { name: "清炒菠菜", desc: "补铁养血，清淡健康" }, { name: "蚝油生菜", desc: "鲜嫩脆爽，蚝油提味" },
+    { name: "凉拌黄瓜", desc: "清脆爽口，开胃解暑" }, { name: "木耳炒山药", desc: "木耳清肺，山药养胃" },
+    { name: "西芹炒百合", desc: "西芹降压，百合润肺" }, { name: "清炒荷兰豆", desc: "脆嫩爽口，色泽翠绿" },
+    { name: "蒜蓉秋葵", desc: "秋葵滑嫩，养护肠胃" }, { name: "清炒芦笋", desc: "芦笋鲜嫩，富含叶酸" },
+    { name: "蒜蓉空心菜", desc: "清热解毒，脆嫩爽口" }, { name: "清炒茼蒿", desc: "养心安神，清香可口" },
+    { name: "香菇油菜", desc: "香菇增鲜，油菜翠绿" }, { name: "清炒豌豆苗", desc: "嫩苗清脆，维C丰富" },
+    { name: "凉拌木耳", desc: "爽脆酸辣，清血管" }, { name: "皮蛋豆腐", desc: "冰凉嫩滑，晚餐佳品" },
+    { name: "荷塘小炒", desc: "藕片木耳荷兰豆，清脆组合" }, { name: "清炒莴笋丝", desc: "清脆爽口，助眠安神" },
+    { name: "素炒合菜", desc: "多种时蔬，营养均衡" }, { name: "凉拌三丝", desc: "海带胡萝卜粉丝，清爽低卡" },
+    { name: "剁椒金针菇", desc: "微辣鲜香，金针菇滑嫩" }, { name: "蒜蓉粉丝蒸娃娃菜", desc: "蒸制清淡，原汁原味" },
+    { name: "清炒西葫芦", desc: "清淡甘甜，水分充足" }, { name: "白灼西兰花", desc: "原味脆嫩，蘸酱提味" },
+    { name: "蒜泥茄子", desc: "蒸拌低油，蒜香浓郁" }, { name: "葱油金针菇", desc: "滚油激香，口感滑嫩" },
+    { name: "凉拌莴笋丝", desc: "清脆麻油香，清爽低脂" }, { name: "清炒芥蓝", desc: "微苦回甘，清热去火" },
+    { name: "蚝油杏鲍菇", desc: "菌菇肉感，蚝油提鲜" }, { name: "蜜汁蒸南瓜", desc: "南瓜甘甜，低卡饱腹" },
+    { name: "拍黄瓜", desc: "冰凉爽脆，蒜醋调味" }, { name: "拌海带丝", desc: "补碘降压，爽口开胃" },
+    { name: "腐竹拌芹菜", desc: "腐竹蛋白丰富，芹菜降压" }, { name: "蒸茄子(蘸酱)", desc: "蒸制低油，原味健康" },
+    { name: "清炒豆芽", desc: "清脆爽口，低卡实惠" }, { name: "韭菜炒豆芽", desc: "双脆合璧，温补阳气" },
+    { name: "山药炒木耳", desc: "健脾清肺，温和滋补" }, { name: "酸辣藕片", desc: "脆嫩酸辣，润肺养血" },
+    { name: "凉拌金针菇", desc: "爽滑低卡，调味清淡" }, { name: "白灼芥蓝", desc: "清脆微苦，蘸蚝油食用" },
+    { name: "清炒红薯叶", desc: "营养冠军，清淡可口" }, { name: "蒸紫薯", desc: "花青素丰富，天然甘甜" },
+    { name: "苦瓜炒蛋", desc: "苦瓜清热，适合夏季晚餐" }, { name: "丝瓜炒蛋", desc: "丝瓜清甜嫩滑，助眠安神" },
+    { name: "番茄炒西兰花", desc: "红绿搭配，维C丰富" }, { name: "松仁玉米", desc: "松仁香脆，玉米粒甜" },
+    { name: "豉汁蒸豆腐", desc: "豆豉增香，豆腐嫩滑低脂" }, { name: "素烧茄子", desc: "少油版，软烂清香" },
+    { name: "清炒苦瓜", desc: "清热去火，夏季养生" }, { name: "蚝油生菜胆", desc: "生菜胆更脆嫩，蚝油提鲜" },
+    { name: "蒜蓉蒸丝瓜", desc: "丝瓜清热，蒸制低脂" }, { name: "凉拌苦菊", desc: "微苦清热，沙拉口感" },
+  ],
+  dinnerSoup: [
+    { name: "番茄蛋花汤", desc: "酸甜开胃，营养暖身" }, { name: "紫菜蛋花汤", desc: "紫菜补碘，清淡鲜美" },
+    { name: "冬瓜排骨汤", desc: "冬瓜清热，排骨补钙" }, { name: "玉米排骨汤", desc: "玉米清甜，排骨浓香" },
+    { name: "酸辣汤", desc: "酸辣开胃，暖身驱寒" }, { name: "菌菇豆腐汤", desc: "菌菇鲜美，豆腐嫩滑" },
+    { name: "鲫鱼豆腐汤", desc: "汤白如奶，鲜美滋补" }, { name: "海带排骨汤", desc: "海带补碘，排骨鲜美" },
+    { name: "萝卜排骨汤", desc: "萝卜清甜，温润滋补" }, { name: "山药排骨汤", desc: "山药健脾，汤浓味美" },
+    { name: "冬瓜虾仁汤", desc: "清淡鲜美，低脂健康" }, { name: "丝瓜蛋花汤", desc: "丝瓜清甜嫩滑，清热解暑" },
+    { name: "白菜豆腐汤", desc: "清淡素雅，家常温暖" }, { name: "榨菜肉丝汤", desc: "榨菜咸鲜，开胃暖身" },
+    { name: "西湖牛肉羹", desc: "牛肉末蛋花，羹浓鲜香" }, { name: "三鲜汤", desc: "虾仁火腿蛋皮，三鲜合一" },
+    { name: "南瓜浓汤", desc: "南瓜清甜，细腻顺滑" }, { name: "玉米浓汤", desc: "玉米香甜，西式奶香" },
+    { name: "蘑菇奶油汤", desc: "菌菇香浓，奶油顺滑" }, { name: "味噌豆腐汤", desc: "日式清淡，豆腐海带" },
+    { name: "蛤蜊冬瓜汤", desc: "蛤蜊鲜美，冬瓜清甜" }, { name: "虾仁豆腐汤", desc: "虾仁弹牙，豆腐嫩滑" },
+    { name: "鱼丸清汤", desc: "鱼丸弹牙，汤清鲜美" }, { name: "牛肉丸萝卜汤", desc: "牛肉丸劲道，萝卜清甜" },
+    { name: "羊肉萝卜汤", desc: "温补暖身，适合冬季" }, { name: "罗宋汤", desc: "番茄牛肉蔬菜，酸甜浓郁" },
+    { name: "冬阴功汤(清淡版)", desc: "酸辣虾汤，泰式风味" }, { name: "银耳莲子汤", desc: "润肺安神，甜汤佳选" },
+    { name: "桂圆红枣汤", desc: "补气血安神，温暖甘甜" }, { name: "绿豆百合汤", desc: "清热解暑，夏季佳品" },
+    { name: "红豆薏米汤", desc: "祛湿消肿，清淡养生" }, { name: "乌鸡汤", desc: "滋补养颜，汤浓味美" },
+    { name: "老鸭汤", desc: "滋阴润燥，汤醇鲜美" }, { name: "菌菇鸡汤", desc: "菌菇提鲜，鸡肉滋补" },
+    { name: "枸杞猪肝汤", desc: "养肝明目，补血佳品" }, { name: "菠菜猪肝汤", desc: "补铁养血，清淡营养" },
+    { name: "木耳红枣汤", desc: "养血活血，甘甜温暖" }, { name: "豆腐鱼头汤", desc: "鱼头熬白汤，豆腐嫩滑" },
+    { name: "娃娃菜粉丝汤", desc: "清淡素雅，粉丝爽滑" }, { name: "豆芽汤", desc: "清热解毒，简单清爽" },
+    { name: "雪梨银耳汤", desc: "润肺止咳，甘甜滋润" }, { name: "莲藕排骨汤", desc: "莲藕粉糯，汤汁浓郁" },
+    { name: "玉米胡萝卜排骨汤", desc: "清甜滋润，色泽金黄" }, { name: "花菇鸡汤", desc: "花菇厚实，鸡汤鲜美" },
+    { name: "酸菜排骨汤", desc: "酸菜解腻，排骨鲜香" }, { name: "山药乌鸡汤", desc: "双补气血，汤浓味美" },
+    { name: "竹笋老鸭汤", desc: "竹笋鲜嫩，老鸭滋阴" }, { name: "白萝卜牛腩汤", desc: "萝卜清甜，牛腩酥烂" },
+    { name: "冬瓜老鸭汤", desc: "清热滋阴，夏季靓汤" }, { name: "莲藕花生排骨汤", desc: "莲藕粉糯，花生香甜" },
+    { name: "菠菜蛋花汤", desc: "菠菜补铁，蛋花鲜嫩" }, { name: "豌豆苗汤", desc: "嫩苗清香，汤清味美" },
+    { name: "蔬菜清汤", desc: "多种时蔬，清爽健康" },
+  ],
+  dinnerStaple: [
+    { name: "小米粥" }, { name: "南瓜粥" }, { name: "紫薯粥" }, { name: "杂粮粥" },
+    { name: "黑米粥" }, { name: "红薯粥" }, { name: "山药粥" }, { name: "玉米粥" },
+    { name: "白米饭(小碗)" }, { name: "紫米饭(小碗)" }, { name: "杂粮饭(小碗)" },
+    { name: "馒头" }, { name: "花卷" }, { name: "杂粮馒头" }, { name: "全麦面包" },
+    { name: "蒸红薯" }, { name: "蒸紫薯" }, { name: "蒸玉米" }, { name: "蒸山药" },
+    { name: "清汤面" }, { name: "葱油拌面(小份)" }, { name: "素馅饺子(小份)" },
+    { name: "菜包子" }, { name: "窝窝头" }, { name: "烙饼(小份)" }, { name: "八宝粥" },
+    { name: "薏米粥" }, { name: "小米红薯粥" }, { name: "南瓜小米粥" },
+    { name: "红豆莲子粥" }, { name: "疙瘩汤" }, { name: "面片汤" },
+  ],
+};
+
+// ===================== 菜品详情数据库 =====================
+const DISH_DETAILS = { /* ---- same as before, kept for brevity ---- */
+  "小米南瓜粥 + 水煮蛋 + 蒸红薯":{ingredients:"小米 50g、南瓜 100g、鸡蛋 1个、红薯 150g",calories:"约 320 千卡",steps:"① 小米+南瓜煮20分钟 ② 鸡蛋冷水煮7分钟 ③ 红薯蒸15分钟"},
+  "回锅肉":{ingredients:"五花肉 300g、蒜苗 150g、郫县豆瓣酱 1勺、甜面酱 半勺、姜蒜片、料酒、生抽、白糖",calories:"约 260 千卡/100g",steps:"① 五花肉整块煮20分钟切薄片 ② 热锅少油煸肉片至卷曲 ③ 加豆瓣酱炒出红油 ④ 加姜蒜甜面酱生抽糖调味 ⑤ 下蒜苗大火翻炒30秒出锅"},
+  "红烧肉":{ingredients:"五花肉 500g、冰糖 30g、生抽 2勺、老抽 1勺、料酒 2勺、八角 2个、桂皮 1块、姜 4片",calories:"约 280 千卡/100g",steps:"① 五花肉切块焯水 ② 小火熬冰糖至焦糖色下肉上色 ③ 加调料香料热水炖1小时 ④ 大火收汁至红亮"},
+  "糖醋排骨":{ingredients:"猪小排 500g、料酒/生抽/白糖/香醋=1:2:3:4、姜片、白芝麻",calories:"约 250 千卡/100g",steps:"① 排骨焯水 ② 调糖醋汁(1酒2酱3糖4醋5水) ③ 煎排骨至金黄 ④ 倒汁焖15分钟 ⑤ 大火收汁撒芝麻"},
+  "鱼香肉丝":{ingredients:"猪里脊 250g、木耳/胡萝卜/青椒、泡椒、姜蒜末、生抽/醋/糖/淀粉",calories:"约 180 千卡/100g",steps:"① 肉切丝腌制 ② 蔬菜切丝调鱼香汁 ③ 滑炒肉丝盛出 ④ 炒香泡椒姜蒜下蔬菜 ⑤ 倒肉淋汁翻匀"},
+  "宫保鸡丁":{ingredients:"鸡胸肉 300g、花生米 50g、干辣椒/花椒、葱段、姜蒜片、生抽/醋/糖/淀粉",calories:"约 200 千卡/100g",steps:"① 鸡肉切丁腌制 ② 花生炒脆去皮 ③ 小火炸香花椒辣椒 ④ 大火滑炒鸡丁 ⑤ 加调料翻匀拌花生"},
+  "水煮肉片":{ingredients:"猪里脊 300g、生菜/豆芽、干辣椒/花椒、郫县豆瓣酱 2勺、姜蒜末、蛋清、淀粉",calories:"约 220 千卡/100g",steps:"① 肉切薄片腌制 ② 制刀口辣椒(干辣椒花椒炒香剁碎) ③ 炒豆瓣酱加水烧开焯蔬菜垫底 ④ 滑入肉片煮熟 ⑤ 撒辣椒蒜末浇滚油"},
+  "清蒸鲈鱼":{ingredients:"鲈鱼 1条、葱姜红椒丝、蒸鱼豉油 2勺、料酒",calories:"约 105 千卡/100g",steps:"① 鱼处理干净划刀抹料酒盐 ② 盘底铺姜片上鱼 ③ 蒸锅水开大火蒸8-10分钟 ④ 倒掉腥水铺葱姜丝 ⑤ 淋蒸鱼豉油浇滚油"},
+  "酸菜鱼":{ingredients:"草鱼/黑鱼 1条、酸菜 200g、干辣椒/花椒、姜蒜、蛋清、淀粉",calories:"约 130 千卡/100g",steps:"① 鱼片腌制 ② 酸菜切丝炒干 ③ 炒香姜蒜泡椒下酸菜鱼骨熬汤10分钟 ④ 捞出垫碗逐片滑入鱼片 ⑤ 撒干辣椒花椒浇滚油"},
+  "锅包肉":{ingredients:"猪里脊 300g、土豆淀粉 150g、胡萝卜/姜/葱丝、白醋 3勺、白糖 3勺",calories:"约 240 千卡/100g",steps:"① 里脊切3mm片拍松 ② 水淀粉裹匀 ③ 170℃炸定型 200℃复炸至酥脆 ④ 炒香糖醋汁 ⑤ 倒肉快速翻匀挂汁出锅"},
+  "麻婆豆腐(加肉末)":{ingredients:"嫩豆腐 1盒、猪肉末 80g、郫县豆瓣酱 1.5勺、豆豉、花椒粉、蒜末、淀粉",calories:"约 150 千卡/100g",steps:"① 豆腐切块焯水 ② 炒肉末加豆瓣酱出红油 ③ 加蒜豆豉辣椒面加水烧开 ④ 轻放豆腐煮5分钟 ⑤ 勾芡撒花椒粉葱花"},
+  "地三鲜":{ingredients:"土豆 1个、茄子 1个、青椒 1个、蒜末、生抽/老抽/蚝油/糖/淀粉",calories:"约 120 千卡/100g",steps:"① 土豆茄子炸金黄青椒过油 ② 调碗汁 ③ 爆香蒜末倒三种蔬菜 ④ 淋碗汁大火收汁"},
+  "手撕包菜":{ingredients:"包菜 半颗、干辣椒 4个、花椒、蒜片、生抽、香醋",calories:"约 55 千卡/100g",steps:"① 包菜手撕成片 ② 炸香花椒捞出 ③ 爆香辣椒蒜片 ④ 大火下包菜翻炒 ⑤ 淋生抽香醋翻匀出锅"},
+  "酸辣土豆丝":{ingredients:"大土豆 1个、干辣椒/花椒、蒜片、白醋、盐",calories:"约 90 千卡/100g",steps:"① 土豆切细丝洗去淀粉泡醋水 ② 爆香花椒辣椒蒜片 ③ 大火下土豆丝翻炒2分钟 ④ 加盐和锅边醋出锅"},
+  "家常豆腐":{ingredients:"老豆腐 1块、青红椒、木耳、郫县豆瓣酱、生抽、蒜片",calories:"约 150 千卡/100g",steps:"① 豆腐切三角煎至两面金黄 ② 炒香豆瓣酱蒜片 ③ 下青红椒木耳翻炒 ④ 加生抽和水煮2分钟 ⑤ 勾芡出锅"},
+  "干煸四季豆":{ingredients:"四季豆 300g、猪肉末 60g、干辣椒/花椒、蒜姜末、生抽",calories:"约 100 千卡/100g",steps:"① 四季豆去筋炸至表面起皱 ② 炒散肉末 ③ 加花椒辣椒姜蒜爆香 ④ 倒豆角翻炒加生抽"},
+  "番茄蛋花汤":{ingredients:"番茄 1个、鸡蛋 1个、葱花、盐、香油、淀粉",calories:"约 45 千卡/碗",steps:"① 番茄去皮切丁炒出汁 ② 加水烧开煮3分钟 ③ 勾薄芡转小火淋蛋液 ④ 加盐香油撒葱花"},
+  "紫菜蛋花汤":{ingredients:"干紫菜 5g、鸡蛋 1个、虾皮、葱花、盐、香油",calories:"约 35 千卡/碗",steps:"① 紫菜撕碎虾皮洗净 ② 加水烧开放紫菜虾皮 ③ 淋蛋液待凝固轻搅 ④ 加盐香油撒葱花"},
+  "冬瓜排骨汤":{ingredients:"排骨 300g、冬瓜 400g、姜片、枸杞、盐",calories:"约 120 千卡/碗",steps:"① 排骨焯水 ② 加姜片料酒炖50分钟 ③ 冬瓜去皮切块加入炖15分钟 ④ 加枸杞盐"},
+  "鲫鱼豆腐汤":{ingredients:"鲫鱼 1条、嫩豆腐 1盒、姜片、葱结、盐、白胡椒粉",calories:"约 90 千卡/碗",steps:"① 鲫鱼处理干净擦干 ② 煎至两面金黄 ③ 加滚开水+姜葱大火滚10分钟至奶白 ④ 下豆腐煮5分钟调味"},
+  "蚝油生菜":{ingredients:"生菜 2颗、蚝油 2勺、蒜末、生抽、淀粉",calories:"约 45 千卡/100g",steps:"① 生菜焯10秒变翠绿摆盘 ② 爆香蒜末加蚝油生抽水 ③ 勾薄芡淋在生菜上"},
+  "番茄炒蛋":{ingredients:"番茄 2个、鸡蛋 3个、葱花、盐、白糖少许",calories:"约 120 千卡/100g",steps:"① 鸡蛋打散加盐 ② 热油炒蛋至七成熟盛出 ③ 番茄切块炒出汁 ④ 倒回鸡蛋翻匀撒葱花"},
+  "红烧茄子":{ingredients:"茄子 2个、蒜末、生抽/老抽/蚝油/糖/淀粉",calories:"约 100 千卡/100g",steps:"① 茄子切块盐腌10分钟挤干 ② 裹薄淀粉 ③ 煎至表面金黄 ④ 调碗汁爆香蒜末倒茄块淋汁翻匀"},
+  "凉拌黄瓜":{ingredients:"黄瓜 2根、蒜末、香醋 2勺、生抽 1勺、麻油、盐、糖",calories:"约 30 千卡/100g",steps:"① 黄瓜拍碎掰段 ② 盐腌5分钟倒掉水分 ③ 拌入蒜末生抽香醋糖麻油"},
+  "酸辣汤":{ingredients:"猪瘦肉丝/豆腐丝/木耳丝/金针菇、鸡蛋、香醋 2勺、白胡椒粉 1勺、淀粉",calories:"约 80 千卡/碗",steps:"① 水开下肉丝煮散 ② 加豆腐木耳金针菇 ③ 调味勾芡 ④ 淋蛋液成花 ⑤ 关火加醋和胡椒"},
+  "蛋炒饭":{ingredients:"隔夜米饭 250g、鸡蛋 2个、小葱、盐",calories:"约 220 千卡/份",steps:"① 米饭打散 ② 炒蛋碎盛出 ③ 大火炒米饭至粒粒分明 ④ 倒回蛋碎加盐翻匀撒葱花"},
+  "炸酱面":{ingredients:"手擀面 150g、五花肉丁 100g、干黄酱/甜面酱、黄瓜丝/豆芽",calories:"约 350 千卡/份",steps:"① 干黄酱加水调稀 ② 煸炒肉丁出油 ③ 加姜葱酱小火熬10分钟 ④ 面条煮熟码菜浇酱"},
+  "油泼面":{ingredients:"宽面 150g、蒜末/葱花、辣椒面/花椒粉、生抽/香醋",calories:"约 320 千卡/份",steps:"① 面条青菜煮熟入碗 ② 放盐花椒粉辣椒面蒜末葱花 ③ 烧油至冒烟浇在香料上 ④ 淋生抽香醋趁热拌匀"},
+  "煲仔饭":{ingredients:"大米 150g、腊肠/腊肉、青菜、鸡蛋、煲仔饭汁",calories:"约 400 千卡/份",steps:"① 米泡30分钟入刷油砂锅 ② 大火煮开转小火焖8分钟 ③ 铺腊肠腊肉打入鸡蛋焖5分钟 ④ 关火焖5分钟淋汁"},
+  "白切鸡":{ingredients:"整鸡 1只、姜/葱/沙姜、花生油、盐",calories:"约 150 千卡/100g",steps:"① 三提三放 ② 微沸煮20分钟 ③ 关火焖10分钟 ④ 浸冰水使皮爽脆 ⑤ 姜葱蓉加盐浇滚油做蘸料"},
+  "黄焖鸡":{ingredients:"鸡腿 3个、干香菇 6朵、土豆/青椒、姜蒜、生抽/老抽/蚝油/冰糖",calories:"约 185 千卡/100g",steps:"① 鸡腿剁块焯水 ② 炒糖色下鸡块上色 ③ 加姜蒜香菇调味 ④ 倒香菇水焖15分钟 ⑤ 加青椒收汁"},
+  "蒜蓉西兰花":{ingredients:"西兰花 1颗、蒜 4瓣、蚝油、生抽、盐",calories:"约 50 千卡/100g",steps:"① 西兰花掰小朵淡盐水泡 ② 焯90秒过凉水 ③ 爆香一半蒜末下西兰花 ④ 加蚝油生抽 ⑤ 撒剩余生蒜末翻匀"},
+  "凉拌木耳":{ingredients:"干木耳 30g、蒜末/香菜/小米椒、生抽/香醋/香油",calories:"约 50 千卡/100g",steps:"① 木耳泡发焯水3分钟过凉 ② 调凉拌汁 ③ 拌匀冷藏30分钟"},
+  "清炒荷兰豆":{ingredients:"荷兰豆 250g、蒜片、盐",calories:"约 45 千卡/100g",steps:"① 荷兰豆去筋焯30秒入冰水 ② 爆香蒜片大火翻炒 ③ 加盐出锅"},
+  "蒜泥茄子":{ingredients:"长茄子 2个、蒜 5瓣、生抽/香醋/香油",calories:"约 55 千卡/100g",steps:"① 茄子整根蒸10分钟 ② 放凉手撕成条 ③ 蒜捣泥调碗汁浇上"},
+  "丝瓜炒蛋":{ingredients:"丝瓜 1根、鸡蛋 2个、蒜片、盐",calories:"约 80 千卡/100g",steps:"① 丝瓜去皮切块泡盐水 ② 炒蛋盛出 ③ 爆香蒜片下丝瓜炒软 ④ 倒回鸡蛋加盐翻匀"},
+  "蒸红薯":{ingredients:"红薯 2个",calories:"约 150 千卡/份",steps:"① 红薯洗净不去皮 ② 蒸锅上汽后中火蒸20-30分钟 ③ 筷子轻松穿透即可"},
+  "小米粥":{ingredients:"小米 60g、清水 800ml",calories:"约 100 千卡/碗",steps:"① 小米轻淘一遍 ② 水开下小米 ③ 大火煮开转小火熬20分钟 ④ 关火焖5分钟出米油"},
+  "八宝粥":{ingredients:"糯米/黑米/红豆/绿豆/薏米/花生/红枣/莲子 各适量、冰糖",calories:"约 180 千卡/碗",steps:"① 豆类提前泡4小时 ② 所有谷物入锅加足水 ③ 大火烧开转小火熬1小时 ④ 加冰糖搅拌融化"},
+};
+
+// ===================== 饮食属性引擎 =====================
+// 根据菜品名称+详情，计算饮食属性标签
+
+function getDishAttrs(dishName, category) {
+  const details = DISH_DETAILS[dishName] || getDishDetailsCompat(dishName, category);
+  const name = dishName.toLowerCase();
+  const ing = (details?.ingredients || '').toLowerCase();
+  const combined = name + ' ' + ing;
+
+  // 纯素检测: 无任何动物性食材
+  const animalKW = ['肉','鸡','鸭','鱼','虾','蟹','猪','牛','羊','蛋','奶','鱿鱼','排骨','里脊','五花','猪肝','猪蹄','火腿','腊肉','腊肠','肉末','肉松','鹌鹑','皮蛋','松花蛋','咸蛋黄','奶油','黄油','牛肉','牛腩','牛柳','羊肉','乌鸡','老鸭'];
+  let isVegan = true;
+  for (const k of animalKW) { if (combined.includes(k)) { isVegan = false; break; } }
+  const isVegetarian = isVegan || (combined.includes('蛋') && !combined.includes('肉') && !combined.includes('鱼') && !combined.includes('虾') && !combined.includes('鸡') && !combined.includes('鸭'));
+
+  // 麸质检测: 含小麦/面粉制品
+  const glutenKW = ['面','饼','包','饺','馄饨','面包','馒头','花卷','烧麦','油条','吐司','三明治','疙瘩汤','面片','凉皮','河粉','米粉','肠粉','年糕'];
+  let hasGluten = false;
+  for (const k of glutenKW) { if (name.includes(k)) { hasGluten = true; break; } }
+  // 某些含米粉/河粉/肠粉的实际含米浆而非小麦，但大部分面食含麸质
+  const riceBased = ['河粉','米粉','肠粉','凉皮','米线','螺蛳粉'];
+  for (const k of riceBased) { if (name.includes(k)) hasGluten = false; }
+
+  // 辣度检测
+  const spicyKW = ['辣','麻婆','剁椒','水煮','麻辣','干煸','干锅','泡椒','郫县','辣椒','尖椒','避风塘','椒盐'];
+  let spicyLevel = 0;
+  for (const k of spicyKW) { if (name.includes(k) || ing.includes(k)) { spicyLevel = 2; break; } }
+  if (spicyLevel === 0) {
+    const mildSpicy = ['蒜蓉','蒜泥','蒜香','孜然','黑椒','咖喱'];
+    for (const k of mildSpicy) { if (name.includes(k)) { spicyLevel = 1; break; } }
+  }
+
+  // 蛋白质水平
+  const proteinKW = ['肉','鸡','鸭','鱼','虾','蟹','牛','羊','蛋','豆腐','豆','鱿鱼','排骨','里脊','牛腩','牛柳','猪肝','虾仁','乌鸡'];
+  let proteinScore = 0;
+  for (const k of proteinKW) { if (name.includes(k)) proteinScore++; }
+  const proteinLevel = proteinScore >= 3 ? 'high' : proteinScore >= 1 ? 'medium' : 'low';
+
+  // 热量提取
+  let calPer100g = 150; // default
+  const calStr = details?.calories || '';
+  const calMatch = calStr.match(/(\d+)\s*千卡/);
+  if (calMatch) calPer100g = parseInt(calMatch[1]);
+  // 调整至每份估算 (大体*1.5倍)
+  const calPerServing = Math.round(calPer100g * 1.4);
+
+  // 减脂友好度: 低卡+高蛋白+蒸/煮/拌
+  const lowCal = calPer100g <= 120;
+  const healthyCook = name.includes('蒸') || name.includes('煮') || name.includes('拌') || name.includes('灼') || name.includes('清炒') || name.includes('白切');
+  const lowFatScore = (lowCal ? 2 : 0) + (proteinLevel === 'high' ? 1 : 0) + (healthyCook ? 1 : 0);
+
+  return { isVegan, isVegetarian, hasGluten, spicyLevel, proteinLevel, calPer100g, calPerServing, lowFatScore };
+}
+
+// 兼容旧版 getDishDetails (用于未在 DISH_DETAILS 中的菜品)
+function getDishDetailsCompat(dishName, category) {
+  const kw = dishName;
+  let mainIng = '新鲜食材', cal = '约 150 千卡/份', steps = '① 准备食材清洗切配 ② 热锅加油爆香葱姜蒜 ③ 下主料翻炒至断生 ④ 加入调味料调味 ⑤ 翻炒均匀出锅装盘';
+  if (kw.includes('鸡')) { mainIng='鸡肉'; cal='约 180 千卡/100g'; }
+  else if (kw.includes('鸭')) { mainIng='鸭肉'; cal='约 200 千卡/100g'; }
+  else if (kw.includes('鱼')) { mainIng='鲜鱼'; cal='约 110 千卡/100g'; }
+  else if (kw.includes('虾')) { mainIng='大虾'; cal='约 100 千卡/100g'; }
+  else if (kw.includes('牛')) { mainIng='牛肉'; cal='约 190 千卡/100g'; }
+  else if (kw.includes('羊')) { mainIng='羊肉'; cal='约 210 千卡/100g'; }
+  else if (kw.includes('猪')||kw.includes('肉')||kw.includes('排骨')) { mainIng='猪肉'; cal='约 250 千卡/100g'; }
+  else if (kw.includes('蛋')) { mainIng='鸡蛋'; cal='约 130 千卡/100g'; }
+  else if (kw.includes('豆腐')) { mainIng='豆腐'; cal='约 100 千卡/100g'; }
+  else if (kw.includes('面')) { mainIng='面粉'; cal='约 280 千卡/份'; }
+  else if (kw.includes('饭')||kw.includes('米')) { mainIng='大米'; cal='约 200 千卡/份'; }
+  else if (kw.includes('粥')) { mainIng='谷物'; cal='约 100 千卡/碗'; }
+  if (kw.includes('清蒸')||kw.includes('蒸')) steps='① 食材处理腌制 ② 入蒸锅水开大火蒸制 ③ 出锅淋蒸鱼豉油 ④ 撒葱姜丝浇滚油';
+  else if (kw.includes('红烧')) steps='① 主料焯水 ② 炒糖色下主料上色 ③ 加生抽老抽香料 ④ 炖煮至软烂 ⑤ 大火收汁';
+  else if (kw.includes('清炒')||kw.includes('蒜蓉')) steps='① 食材洗净切好 ② 热油爆香蒜末 ③ 大火下食材快速翻炒 ④ 加盐出锅保持清脆';
+  let ingredients = mainIng + '、葱姜蒜、生抽、盐、食用油';
+  return { ingredients, calories: cal, steps };
+}
+
+function getDishDetails(dishName, category) {
+  if (DISH_DETAILS[dishName]) return DISH_DETAILS[dishName];
+  return getDishDetailsCompat(dishName, category);
+}
+
+// ===================== 饮食模式过滤 =====================
+let dietMode = 'balanced'; // balanced | lowcal | muscle | vegan | glutenfree | nospice | spicy
+
+function setDietMode(mode, el) {
+  dietMode = mode;
+  document.querySelectorAll('.diet-pill').forEach(p => {
+    p.classList.remove('active','active--muscle','active--vegan','active--spicy');
+    if (p.dataset.mode === mode) {
+      p.classList.add('active');
+      if (mode==='muscle') p.classList.add('active--muscle');
+      if (mode==='vegan') p.classList.add('active--vegan');
+      if (mode==='spicy') p.classList.add('active--spicy');
+    }
+  });
+  randomizeAll();
+}
+
+function filterByDiet(dishArr, category) {
+  const filtered = dishArr.filter(dish => {
+    const attrs = getDishAttrs(dish.name, category);
+    switch (dietMode) {
+      case 'vegan': return attrs.isVegan;
+      case 'glutenfree': return !attrs.hasGluten;
+      case 'nospice': return attrs.spicyLevel === 0;
+      case 'spicy': return attrs.spicyLevel >= 1;
+      case 'lowcal': return attrs.lowFatScore >= 2;
+      case 'muscle': return attrs.proteinLevel === 'high';
+      default: return true;
+    }
+  });
+  // 如果过滤后没有菜品，回退到不过滤
+  if (filtered.length === 0) return dishArr;
+  return filtered;
+}
+
+// ===================== 冰箱余粮系统 =====================
+const FRIDGE_INGREDIENTS = [
+  { cat:'🥬 蔬菜', items:[
+    {id:'tomato',label:'西红柿',kw:['番茄','西红柿']},{id:'potato',label:'土豆',kw:['土豆','马铃薯']},
+    {id:'pepper',label:'青椒',kw:['青椒','尖椒','辣椒','彩椒']},{id:'cabbage',label:'白菜',kw:['白菜','娃娃菜']},
+    {id:'spinach',label:'菠菜',kw:['菠菜']},{id:'broccoli',label:'西兰花',kw:['西兰花']},
+    {id:'cucumber',label:'黄瓜',kw:['黄瓜']},{id:'carrot',label:'胡萝卜',kw:['胡萝卜']},
+    {id:'gourd',label:'冬瓜',kw:['冬瓜']},{id:'pumpkin',label:'南瓜',kw:['南瓜']},
+    {id:'beans',label:'豆角/四季豆',kw:['豆角','四季豆','豇豆']},{id:'cauliflower',label:'花菜',kw:['花菜','菜花']},
+    {id:'lettuce',label:'生菜',kw:['生菜']},{id:'chive',label:'韭菜',kw:['韭菜']},
+    {id:'celery',label:'芹菜',kw:['芹菜','西芹']},{id:'tofu',label:'豆腐',kw:['豆腐']},
+    {id:'fungus',label:'木耳',kw:['木耳']},{id:'mushroom',label:'菌菇',kw:['香菇','金针菇','蘑菇','杏鲍菇','菌菇']},
+    {id:'eggplant',label:'茄子',kw:['茄子']},{id:'cabbage2',label:'包菜/圆白菜',kw:['包菜','圆白菜','卷心菜']},
+    {id:'radish',label:'白萝卜',kw:['萝卜']},{id:'lotus',label:'莲藕',kw:['莲藕','藕']},
+    {id:'peas',label:'荷兰豆/豆芽',kw:['荷兰豆','豆芽','豌豆']},{id:'corn',label:'玉米',kw:['玉米']},
+    {id:'swpotato',label:'红薯/紫薯',kw:['红薯','紫薯']},{id:'yam',label:'山药',kw:['山药']},
+    {id:'kelp',label:'海带',kw:['海带']},{id:'okra',label:'秋葵',kw:['秋葵']},
+    {id:'asparagus',label:'芦笋',kw:['芦笋']},{id:'bitter',label:'苦瓜',kw:['苦瓜']},{id:'loofah',label:'丝瓜',kw:['丝瓜']},
+  ]},
+  { cat:'🥩 肉禽蛋水产', items:[
+    {id:'egg',label:'鸡蛋',kw:['鸡蛋','蛋']},{id:'pork',label:'猪肉',kw:['猪肉','五花','瘦肉','里脊','肉丝','肉末','肉片','猪','排骨','猪肝','猪蹄']},
+    {id:'chicken',label:'鸡肉',kw:['鸡肉','鸡','鸡腿','鸡翅','鸡胸','乌鸡']},{id:'beef',label:'牛肉',kw:['牛肉','牛腩','牛柳']},
+    {id:'lamb',label:'羊肉',kw:['羊肉']},{id:'shrimp',label:'虾',kw:['虾','虾仁']},
+    {id:'fish',label:'鱼',kw:['鱼','鲈鱼','草鱼','鲫鱼','带鱼','鳊鱼','黄鱼','鲳鱼']},{id:'duck',label:'鸭肉',kw:['鸭']},
+    {id:'crab',label:'蟹',kw:['蟹']},{id:'squid',label:'鱿鱼',kw:['鱿鱼']},
+  ]},
+  { cat:'🍚 主食谷物', items:[
+    {id:'rice',label:'大米/米饭',kw:['大米','米饭','粥','煲仔饭','盖浇饭','炒饭']},
+    {id:'flour',label:'面粉',kw:['面粉','饺子','包子','馒头','花卷','饼','馄饨','油条','烧麦']},
+    {id:'noodle',label:'面条',kw:['面条','挂面']},{id:'millet',label:'小米',kw:['小米']},
+    {id:'oats',label:'燕麦',kw:['燕麦']},{id:'corn2',label:'玉米',kw:['玉米']},{id:'bread',label:'面包/吐司',kw:['面包','吐司','三明治']},
+  ]},
+  { cat:'🧂 调料/其他', items:[
+    {id:'ginger',label:'姜',kw:['姜']},{id:'garlic',label:'蒜',kw:['蒜']},{id:'onion',label:'葱',kw:['葱']},
+    {id:'chili',label:'辣椒/豆瓣酱',kw:['辣椒','辣','豆瓣酱','剁椒','郫县']},{id:'milk',label:'牛奶',kw:['牛奶','奶']},
+  ]},
+];
+
+let fridgeSelection = new Set();
+let fridgeOpen = false;
+
+function getSelectedFridgeIngredients() { return new Set(fridgeSelection); }
+
+function getDishKeywordTokens(dishName, details) {
+  const text = (dishName + ' ' + (details?.ingredients || '')).toLowerCase();
+  const matched = [];
+  for (const cat of FRIDGE_INGREDIENTS)
+    for (const ing of cat.items)
+      for (const k of ing.kw)
+        if (text.includes(k.toLowerCase())) { matched.push(ing.id); break; }
+  return [...new Set(matched)];
+}
+
+function computeMatchScore(dishName, details) {
+  const tokens = getDishKeywordTokens(dishName, details);
+  if (tokens.length === 0) return 0;
+  const sel = getSelectedFridgeIngredients();
+  if (sel.size === 0) return 0;
+  let hit = 0;
+  for (const t of tokens) if (sel.has(t)) hit++;
+  return hit / Math.max(tokens.length, 1);
+}
+
+function filterByFridge(dishArr, category) {
+  const sel = getSelectedFridgeIngredients();
+  if (sel.size === 0) return null;
+  const scored = dishArr.map(d => {
+    const details = getDishDetails(d.name, category);
+    return { dish: d, score: computeMatchScore(d.name, details) };
+  }).filter(s => s.score > 0);
+  if (scored.length === 0) return null;
+  scored.sort((a,b) => b.score - a.score);
+  return scored;
+}
+
+function pickFromFridge(dishArr, category) {
+  const scored = filterByFridge(dishArr, category);
+  if (!scored || scored.length === 0) return null;
+  const topN = Math.max(3, Math.ceil(scored.length * 0.8));
+  const pool = scored.slice(0, topN);
+  return pool[Math.floor(Math.random() * pool.length)].dish;
+}
+
+function isFridgeMode() { return fridgeSelection.size > 0; }
+
+function renderFridgeTags() {
+  const container = document.getElementById('fridgeTags');
+  let html = '';
+  for (const cat of FRIDGE_INGREDIENTS) {
+    html += `<div class="fridge-cat"><div class="fridge-cat-label">${cat.cat}</div><div class="fridge-tags">`;
+    for (const ing of cat.items) {
+      const sel = fridgeSelection.has(ing.id) ? ' selected' : '';
+      html += `<span class="fridge-tag${sel}" data-id="${ing.id}" onclick="toggleIngredient(this,'${ing.id}')">${ing.label}</span>`;
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+  updateFridgeBadge(); updateFridgeStatus();
+}
+function toggleIngredient(el, id) {
+  if (fridgeSelection.has(id)) { fridgeSelection.delete(id); el.classList.remove('selected'); }
+  else { fridgeSelection.add(id); el.classList.add('selected'); }
+  updateFridgeBadge(); updateFridgeStatus();
+}
+function selectFridgeAll() {
+  for (const cat of FRIDGE_INGREDIENTS) for (const ing of cat.items) fridgeSelection.add(ing.id);
+  renderFridgeTags();
+}
+function clearFridge() { fridgeSelection.clear(); renderFridgeTags(); }
+function updateFridgeBadge() {
+  const badge = document.getElementById('fridgeBadge');
+  const btn = document.getElementById('fridgeToggle');
+  if (badge) badge.textContent = fridgeSelection.size || '';
+  if (btn) btn.classList.toggle('active', fridgeSelection.size > 0);
+}
+function updateFridgeStatus() {
+  const el = document.getElementById('fridgeStatus');
+  if (!el) return;
+  if (fridgeSelection.size === 0) {
+    el.textContent = '未选择食材，将完全随机抽选';
+    el.className = 'fridge-status';
+  } else {
+    let total=0, matchable=0;
+    const pools = [
+      {arr:DISH_DB.lunchMeat,cat:'meat'},{arr:DISH_DB.lunchVeggie,cat:'veggie'},
+      {arr:DISH_DB.dinnerVeggie,cat:'veggie'},{arr:DISH_DB.dinnerSoup,cat:'soup'},
+    ];
+    for (const p of pools) { total+=p.arr.length; const f=filterByFridge(p.arr,p.cat); if(f) matchable+=f.length; }
+    if (matchable>0) { el.textContent=`已选 ${fridgeSelection.size} 种食材，可匹配 ${matchable}/${total} 道菜品`; el.className='fridge-status match'; }
+    else { el.textContent=`已选 ${fridgeSelection.size} 种食材，暂无匹配菜品，将随机抽选`; el.className='fridge-status none'; }
+  }
+}
+function toggleFridge() {
+  fridgeOpen = !fridgeOpen;
+  const panel = document.getElementById('fridgePanel');
+  if (fridgeOpen) { panel.classList.add('open'); renderFridgeTags(); }
+  else panel.classList.remove('open');
+}
+
+// ===================== 综合选菜引擎 (饮食模式 + 冰箱 + 随机) =====================
+
+function smartPick(dishArr, category) {
+  // 第1优先级: 冰箱匹配
+  if (isFridgeMode()) {
+    const fridgeResult = pickFromFridge(dishArr, category);
+    if (fridgeResult) {
+      // 再做饮食模式过滤
+      const postFilter = filterByDiet([fridgeResult], category);
+      if (postFilter.length > 0) return postFilter[0];
+    }
+  }
+  // 第2优先级: 饮食模式过滤后随机
+  const dietFiltered = filterByDiet(dishArr, category);
+  return pick(dietFiltered);
+}
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ===================== 热量计算 =====================
+
+function estimateCalories(dish) {
+  if (!dish) return 0;
+  const details = DISH_DETAILS[dish.name] || getDishDetailsCompat(dish.name, '');
+  const calStr = details?.calories || '';
+  const m = calStr.match(/(\d+)/);
+  if (m) return parseInt(m[1]);
+  return 150;
+}
+
+function computeDailyCalories(dayMenu) {
+  let total = 0;
+  const items = [
+    dayMenu.breakfast,
+    dayMenu.lunchMeatItem, dayMenu.lunchVeggieItem, dayMenu.lunchStapleItem,
+    dayMenu.dinnerVeggieItem, dayMenu.dinnerSoupItem, dayMenu.dinnerStapleItem,
+  ];
+  for (const item of items) {
+    if (item && item.name) total += estimateCalories(item);
+  }
+  return total;
+}
+
+function getCalTag(total) {
+  if (total <= 900) return '<span class="cal-tag cal-tag--low">低卡</span>';
+  if (total <= 1500) return '<span class="cal-tag cal-tag--mid">适中</span>';
+  return '<span class="cal-tag cal-tag--high">高卡</span>';
+}
+
+function updateCalSummary() {
+  const el = document.getElementById('calSummary');
+  if (!el) return;
+  if (viewMode === 'weekly') {
+    el.innerHTML = '';
+    return;
+  }
+  const total = computeDailyCalories(currentDay);
+  const tag = getCalTag(total);
+  el.innerHTML = `📊 今日预计摄入 <strong>≈ ${total} kcal</strong> ${tag}`;
+}
+
+// ===================== 单日菜单 =====================
+
+let currentDay = {};
+
+function generateDayMenu() {
+  return {
+    breakfast: pick(DISH_DB.breakfast),
+    lunchMeatItem: smartPick(DISH_DB.lunchMeat, 'meat'),
+    lunchVeggieItem: smartPick(DISH_DB.lunchVeggie, 'veggie'),
+    lunchStapleItem: smartPick(DISH_DB.lunchStaple, 'staple'),
+    dinnerVeggieItem: smartPick(DISH_DB.dinnerVeggie, 'veggie'),
+    dinnerSoupItem: smartPick(DISH_DB.dinnerSoup, 'soup'),
+    dinnerStapleItem: smartPick(DISH_DB.dinnerStaple, 'staple'),
+  };
+}
+
+// ===================== 周计划数据 =====================
+let weeklyMenu = []; // [ { breakfast, lunchMeatItem, lunchVeggieItem, lunchStapleItem, dinnerVeggieItem, dinnerSoupItem, dinnerStapleItem }, ... ] x7
+const DAY_LABELS = ['周一','周二','周三','周四','周五','周六','周日'];
+
+function initWeek() {
+  weeklyMenu = [];
+  for (let i = 0; i < 7; i++) weeklyMenu.push(generateDayMenu());
+}
+
+// ===================== 视图模式 =====================
+let viewMode = 'daily'; // daily | weekly
+
+function setViewMode(mode) {
+  viewMode = mode;
+  const toggleBtns = document.querySelectorAll('#viewToggle button');
+  toggleBtns.forEach((b,i) => b.classList.toggle('active', (i===0 && mode==='daily') || (i===1 && mode==='weekly')));
+  const weeklyActions = document.getElementById('weeklyActions');
+
+  if (mode === 'weekly') {
+    document.getElementById('mealsGrid').style.display = 'none';
+    document.getElementById('weeklyContainer').classList.add('active');
+    document.getElementById('calSummary').style.display = 'none';
+    if (weeklyActions) weeklyActions.style.display = '';
+    if (weeklyMenu.length === 0) initWeek();
+    renderWeek();
+  } else {
+    document.getElementById('mealsGrid').style.display = '';
+    document.getElementById('weeklyContainer').classList.remove('active');
+    document.getElementById('calSummary').style.display = '';
+    if (weeklyActions) weeklyActions.style.display = 'none';
+    renderAll();
+  }
+}
+
+function toggleWeeklyView() {
+  const btn = document.getElementById('btnWeekly');
+  if (viewMode === 'weekly') {
+    setViewMode('daily');
+    btn.classList.remove('active');
+    btn.textContent = '📅 周计划';
+    document.getElementById('viewToggle').style.display = 'none';
+    document.getElementById('weeklyActions').style.display = 'none';
+    document.querySelector('.action-bar').querySelector('.btn-primary').style.display = '';
+    document.querySelectorAll('.action-bar .btn-outline').forEach(b => {
+      if (!b.classList.contains('fridge-toggle-btn')) b.style.display = '';
+    });
+  } else {
+    setViewMode('weekly');
+    btn.classList.add('active');
+    btn.textContent = '📅 返回单日';
+    document.getElementById('viewToggle').style.display = 'flex';
+    document.getElementById('weeklyActions').style.display = '';
+    // 隐藏单日相关按钮
+    document.querySelector('.action-bar').querySelector('.btn-primary').style.display = 'none';
+    document.querySelectorAll('.action-bar .btn-outline').forEach(b => {
+      if (b.onclick && b.onclick.toString().includes('randomizeMeal')) b.style.display = 'none';
+    });
+  }
+}
+
+function generateWeek() {
+  initWeek();
+  renderWeek();
+}
+
+function clearWeek() {
+  weeklyMenu = [];
+  renderWeek();
+}
+
+// ===================== 周计划渲染 + 拖拽 =====================
+
+function renderWeek() {
+  const grid = document.getElementById('weeklyGrid');
+  if (!grid) return;
+  const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+  let html = '';
+  for (let d = 0; d < 7; d++) {
+    const day = weeklyMenu[d];
+    const isToday = d === todayIdx;
+    html += `<div class="week-col">
+      <div class="week-col__header${isToday ? ' today' : ''}">${DAY_LABELS[d]}${isToday ? ' ⭐' : ''}</div>`;
+    ['breakfast','lunch','dinner'].forEach((meal, mi) => {
+      let items = [];
+      if (meal === 'breakfast' && day) {
+        items = [{label:'早',name:day.breakfast?.name||'',cal:day.breakfast?estimateCalories(day.breakfast):0}];
+      } else if (meal === 'lunch' && day) {
+        items = [
+          {label:'荤',name:day.lunchMeatItem?.name||'',cal:day.lunchMeatItem?estimateCalories(day.lunchMeatItem):0},
+          {label:'素',name:day.lunchVeggieItem?.name||'',cal:day.lunchVeggieItem?estimateCalories(day.lunchVeggieItem):0},
+          {label:'主',name:day.lunchStapleItem?.name||'',cal:day.lunchStapleItem?estimateCalories(day.lunchStapleItem):0},
+        ];
+      } else if (meal === 'dinner' && day) {
+        items = [
+          {label:'蔬',name:day.dinnerVeggieItem?.name||'',cal:day.dinnerVeggieItem?estimateCalories(day.dinnerVeggieItem):0},
+          {label:'汤',name:day.dinnerSoupItem?.name||'',cal:day.dinnerSoupItem?estimateCalories(day.dinnerSoupItem):0},
+          {label:'主',name:day.dinnerStapleItem?.name||'',cal:day.dinnerStapleItem?estimateCalories(day.dinnerStapleItem):0},
+        ];
+      }
+      if (!day) items = [];
+      html += `<div class="week-slot" data-day="${d}" data-meal="${meal}"
+        draggable="${items.length>0?'true':'false'}"
+        ondragstart="handleDragStart(event,'${d}','${meal}')"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event,'${d}','${meal}')"
+        ondblclick="rerollWeekSlot('${d}','${meal}')">`;
+      html += `<div class="week-slot__label">${meal==='breakfast'?'🌅 早餐':meal==='lunch'?'☀️ 午饭':'🌙 晚饭'}</div>`;
+      if (items.length === 0) {
+        html += `<div class="week-slot__empty">— 未生成 —</div>`;
+      } else {
+        items.forEach(it => {
+          html += `<div class="week-slot__name">${it.label?('<b>'+it.label+'</b> '):''}${it.name||'(空)'}</div>`;
+          if (it.cal > 0) html += `<div class="week-slot__cal">≈${it.cal}kcal</div>`;
+        });
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+// ---- Drag & Drop ----
+let dragData = null;
+
+function handleDragStart(e, day, meal) {
+  dragData = { fromDay: parseInt(day), fromMeal: meal };
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', `${day}|${meal}`);
+}
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.target.closest('.week-slot')?.classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  e.target.closest('.week-slot')?.classList.remove('drag-over');
+}
+function handleDrop(e, toDay, toMeal) {
+  e.preventDefault();
+  e.target.closest('.week-slot')?.classList.remove('drag-over');
+  document.querySelectorAll('.week-slot.dragging').forEach(s => s.classList.remove('dragging'));
+  if (!dragData) return;
+  const fromDay = dragData.fromDay;
+  const fromMeal = dragData.fromMeal;
+
+  // 交换两餐
+  const a = cloneMealSlot(weeklyMenu[fromDay], fromMeal);
+  const b = cloneMealSlot(weeklyMenu[toDay], toMeal);
+  setMealSlot(weeklyMenu[fromDay], fromMeal, b);
+  setMealSlot(weeklyMenu[toDay], toMeal, a);
+  dragData = null;
+  renderWeek();
+}
+
+function cloneMealSlot(day, meal) {
+  if (!day) return null;
+  if (meal === 'breakfast') return { breakfast: day.breakfast ? {...day.breakfast} : null };
+  if (meal === 'lunch') return {
+    lunchMeatItem: day.lunchMeatItem?{...day.lunchMeatItem}:null,
+    lunchVeggieItem: day.lunchVeggieItem?{...day.lunchVeggieItem}:null,
+    lunchStapleItem: day.lunchStapleItem?{...day.lunchStapleItem}:null,
+  };
+  if (meal === 'dinner') return {
+    dinnerVeggieItem: day.dinnerVeggieItem?{...day.dinnerVeggieItem}:null,
+    dinnerSoupItem: day.dinnerSoupItem?{...day.dinnerSoupItem}:null,
+    dinnerStapleItem: day.dinnerStapleItem?{...day.dinnerStapleItem}:null,
+  };
+  return null;
+}
+
+function setMealSlot(day, meal, data) {
+  if (!day || !data) return;
+  if (meal === 'breakfast') { day.breakfast = data.breakfast; }
+  else if (meal === 'lunch') {
+    day.lunchMeatItem = data.lunchMeatItem;
+    day.lunchVeggieItem = data.lunchVeggieItem;
+    day.lunchStapleItem = data.lunchStapleItem;
+  } else if (meal === 'dinner') {
+    day.dinnerVeggieItem = data.dinnerVeggieItem;
+    day.dinnerSoupItem = data.dinnerSoupItem;
+    day.dinnerStapleItem = data.dinnerStapleItem;
+  }
+}
+
+function rerollWeekSlot(day, meal) {
+  if (!weeklyMenu[day]) return;
+  const newDay = generateDayMenu();
+  const slot = cloneMealSlot(newDay, meal);
+  setMealSlot(weeklyMenu[day], meal, slot);
+  renderWeek();
+}
+
+// ===================== 单日渲染 =====================
+
+function makeFlipRow(item, category) {
+  const details = getDishDetails(item.name, category);
+  const cls = item.labelClass || 'dish-label--main';
+  const attrs = getDishAttrs(item.name, category);
+  return `
+    <div class="flip-row" onclick="toggleFlip(this, event)">
+      <div class="flip-inner">
+        <div class="flip-front">
+          <span class="dish-label ${cls}">${item.label||''}</span>
+          <div style="flex:1">
+            <div class="dish-name">${item.name}</div>
+            ${item.desc?`<div class="dish-desc">${item.desc}</div>`:''}
+            <div class="dish-cal-row">🔥 ≈${attrs.calPerServing}kcal/份${attrs.spicyLevel>0?' · 🌶️':''}${attrs.isVegan?' · 🌱':''}${attrs.hasGluten?' · 🌾':''}${attrs.proteinLevel==='high'?' · 💪':''}</div>
+          </div>
+        </div>
+        <div class="flip-back">
+          <div class="detail-section"><div class="detail-title" style="color:#d06828">食材配比</div><div class="detail-text">${details.ingredients}</div></div>
+          <div class="detail-section"><span class="detail-calories">${details.calories}</span></div>
+          <div class="detail-section"><div class="detail-title" style="color:#3d7040">简易步骤</div><div class="detail-steps">${details.steps}</div></div>
+          <div class="flip-back-hint">点击空白处翻回 ›</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderCard(id, items, category) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  const body = card.querySelector('.meal-card__body');
+  if (!items||items.length===0) { body.innerHTML='<div class="placeholder">暂无数据</div>'; return; }
+  body.innerHTML = items.map(item => makeFlipRow(item, category)).join('');
+}
+
+function renderAll() {
+  if (!currentDay || !currentDay.breakfast) currentDay = generateDayMenu();
+  const d = currentDay;
+  renderCard('cardMorning', [
+    { label:'早餐', labelClass:'dish-label--bf', name:d.breakfast.name, desc:d.breakfast.desc },
+  ], 'breakfast');
+  renderCard('cardNoon', [
+    { label:'荤菜', labelClass:'dish-label--meat',   name:d.lunchMeatItem.name,    desc:d.lunchMeatItem.desc },
+    { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem.name,  desc:d.lunchVeggieItem.desc },
+    { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem.name,  desc:d.lunchStapleItem.desc||'' },
+  ], 'lunch');
+  renderCard('cardNight', [
+    { label:'蔬菜', labelClass:'dish-label--veggie', name:d.dinnerVeggieItem.name, desc:d.dinnerVeggieItem.desc },
+    { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem.name,   desc:d.dinnerSoupItem.desc },
+    { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem.name, desc:d.dinnerStapleItem.desc||'' },
+  ], 'dinner');
+  updateCalSummary();
+}
+
+// ===================== 3D翻转 =====================
+
+function measureBackHeight(backEl, containerWidth) {
+  const measurer = document.createElement('div');
+  measurer.style.cssText = 'position:fixed;left:-9999px;top:0;visibility:hidden;width:'+containerWidth+'px;font-size:0.82rem;line-height:1.55;padding:12px 14px;font-family:inherit;';
+  measurer.innerHTML = backEl.innerHTML;
+  document.body.appendChild(measurer);
+  const h = measurer.scrollHeight;
+  document.body.removeChild(measurer);
+  return h;
+}
+
+function toggleFlip(row, e) {
+  if (e.target.closest('.flip-back')) {
+    const inner = row.querySelector('.flip-inner');
+    if (inner && inner.classList.contains('flipped')) {
+      inner.classList.remove('flipped');
+      inner.style.height = '';
+      row.style.margin = '';
+    }
+    return;
+  }
+  const inner = row.querySelector('.flip-inner');
+  if (!inner) return;
+  const body = row.closest('.meal-card__body');
+  if (body) {
+    body.querySelectorAll('.flip-inner.flipped').forEach(other => {
+      if (other !== inner) { other.classList.remove('flipped'); other.style.height=''; other.closest('.flip-row').style.margin=''; }
+    });
+  }
+  const isOpening = !inner.classList.contains('flipped');
+  if (isOpening) {
+    const back = row.querySelector('.flip-back');
+    const front = row.querySelector('.flip-front');
+    const frontH = front.offsetHeight;
+    const rowW = row.offsetWidth;
+    const backH = measureBackHeight(back, rowW);
+    const clampedBackH = Math.min(backH, 260);
+    const targetH = Math.max(frontH, clampedBackH) + 4;
+    inner.style.height = targetH + 'px';
+    row.style.margin = '10px 0';
+    requestAnimationFrame(() => { requestAnimationFrame(() => { inner.classList.add('flipped'); }); });
+  } else {
+    inner.classList.remove('flipped');
+    row.style.margin = '';
+    setTimeout(() => { if (!inner.classList.contains('flipped')) inner.style.height = ''; }, 600);
+  }
+}
+
+// ===================== 按钮交互 =====================
+
+function randomizeAll() {
+  document.querySelectorAll('.flip-inner.flipped').forEach(el => {
+    el.classList.remove('flipped'); el.style.height='';
+    const r = el.closest('.flip-row'); if(r) r.style.margin='';
+  });
+  currentDay = generateDayMenu();
+  renderAll();
+  const btn = document.querySelector('.btn-primary');
+  if (btn) { btn.style.transform='scale(0.95)'; setTimeout(()=>{btn.style.transform='';},120); }
+}
+
+function randomizeMeal(meal) {
+  const prefix = meal==='morning'?'cardMorning':meal==='noon'?'cardNoon':'cardNight';
+  const card = document.getElementById(prefix);
+  if (card) card.querySelectorAll('.flip-inner.flipped').forEach(el => {
+    el.classList.remove('flipped'); el.style.height='';
+    const r=el.closest('.flip-row'); if(r) r.style.margin='';
+  });
+  if (!currentDay || !currentDay.breakfast) currentDay = generateDayMenu();
+  switch (meal) {
+    case 'morning':
+      currentDay.breakfast = pick(DISH_DB.breakfast);
+      renderCard('cardMorning', [{ label:'早餐', labelClass:'dish-label--bf', name:currentDay.breakfast.name, desc:currentDay.breakfast.desc }], 'breakfast');
+      break;
+    case 'noon':
+      currentDay.lunchMeatItem = smartPick(DISH_DB.lunchMeat, 'meat');
+      currentDay.lunchVeggieItem = smartPick(DISH_DB.lunchVeggie, 'veggie');
+      currentDay.lunchStapleItem = smartPick(DISH_DB.lunchStaple, 'staple');
+      renderCard('cardNoon', [
+        { label:'荤菜', labelClass:'dish-label--meat',   name:currentDay.lunchMeatItem.name,    desc:currentDay.lunchMeatItem.desc },
+        { label:'素菜', labelClass:'dish-label--veggie', name:currentDay.lunchVeggieItem.name,  desc:currentDay.lunchVeggieItem.desc },
+        { label:'主食', labelClass:'dish-label--staple', name:currentDay.lunchStapleItem.name,  desc:currentDay.lunchStapleItem.desc||'' },
+      ], 'lunch');
+      break;
+    case 'night':
+      currentDay.dinnerVeggieItem = smartPick(DISH_DB.dinnerVeggie, 'veggie');
+      currentDay.dinnerSoupItem = smartPick(DISH_DB.dinnerSoup, 'soup');
+      currentDay.dinnerStapleItem = smartPick(DISH_DB.dinnerStaple, 'staple');
+      renderCard('cardNight', [
+        { label:'蔬菜', labelClass:'dish-label--veggie', name:currentDay.dinnerVeggieItem.name, desc:currentDay.dinnerVeggieItem.desc },
+        { label:'汤品', labelClass:'dish-label--soup',   name:currentDay.dinnerSoupItem.name,   desc:currentDay.dinnerSoupItem.desc },
+        { label:'主食', labelClass:'dish-label--staple', name:currentDay.dinnerStapleItem.name, desc:currentDay.dinnerStapleItem.desc||'' },
+      ], 'dinner');
+      break;
+  }
+  updateCalSummary();
+}
+
+// ===================== DOM初始化 =====================
+
+function buildDOM() {
+  const grid = document.getElementById('mealsGrid');
+  const cards = [
+    { id:'cardMorning', cls:'meal-card--morning', icon:'🌅', title:'早餐 · 营养早餐', hint:'粗粮+蛋白+蔬果' },
+    { id:'cardNoon',    cls:'meal-card--noon',    icon:'☀️', title:'午饭 · 一荤一素',   hint:'荤素搭配 + 主食' },
+    { id:'cardNight',   cls:'meal-card--night',   icon:'🌙', title:'晚饭 · 一蔬一汤',   hint:'清淡养胃 + 主食' },
+  ];
+  grid.innerHTML = cards.map(c => `
+    <div class="meal-card ${c.cls}" id="${c.id}">
+      <div class="meal-card__header"><span class="icon">${c.icon}</span><span>${c.title}</span><span style="flex:1"></span><span style="font-size:0.72rem;font-weight:400;opacity:0.7">${c.hint}</span></div>
+      <div class="meal-card__body"></div>
+    </div>
+  `).join('');
+}
+
+currentDay = generateDayMenu();
+buildDOM();
+renderAll();
+</script>
+</body>
+</html>
