@@ -194,6 +194,38 @@
   .week-slot:hover { background: #fdfaf5; }
   .week-slot.drag-over { background: #e8f5ea; border: 2px dashed #4caf7c; border-radius: 6px; }
   .week-slot.dragging { opacity: 0.4; }
+
+  /* ---- Fridge match badge ---- */
+  .fridge-badge {
+    display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 7px;
+    border-radius: 10px; margin-left: 6px; vertical-align: middle;
+    background: #e8f5ea; color: #3d7040; border: 1px solid #a0d8a8;
+    animation: badgePulse 0.5s ease;
+  }
+  @keyframes badgePulse {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ---- Slot machine animation ---- */
+  .slot-rolling .flip-inner {
+    animation: slotBlur 0.12s ease-in-out;
+  }
+  @keyframes slotBlur {
+    0%, 100% { filter: blur(0); opacity: 1; }
+    50% { filter: blur(3px); opacity: 0.5; }
+  }
+  .meal-card.settled { animation: settleIn 0.35s ease; }
+  @keyframes settleIn {
+    0% { transform: scale(1.03); box-shadow: 0 4px 20px rgba(76,175,124,0.25); }
+    100% { transform: scale(1); box-shadow: var(--shadow); }
+  }
+
+  /* ---- Diet multi-select hint ---- */
+  .diet-hint {
+    text-align: center; padding: 0 20px 4px; font-size: 0.68rem; color: #bfb9b0;
+  }
   .week-slot__label {
     font-size: 0.63rem; font-weight: 700; color: #a09888; margin-bottom: 2px;
     letter-spacing: 0.5px;
@@ -265,16 +297,17 @@
   <p class="subtitle">科学搭配三餐，营养均衡每一天</p>
 </div>
 
-<!-- 饮食模式选择 -->
+<!-- 饮食模式选择 (多选) -->
 <div class="diet-bar" id="dietBar">
-  <span class="diet-pill active" data-mode="balanced" onclick="setDietMode('balanced', this)">🍽️ 均衡</span>
-  <span class="diet-pill" data-mode="lowcal" onclick="setDietMode('lowcal', this)">🥗 减脂</span>
-  <span class="diet-pill" data-mode="muscle" onclick="setDietMode('muscle', this)">💪 增肌</span>
-  <span class="diet-pill" data-mode="vegan" onclick="setDietMode('vegan', this)">🌱 纯素</span>
-  <span class="diet-pill" data-mode="glutenfree" onclick="setDietMode('glutenfree', this)">🌾 无麸质</span>
-  <span class="diet-pill" data-mode="nospice" onclick="setDietMode('nospice', this)">🚫 免辣</span>
-  <span class="diet-pill" data-mode="spicy" onclick="setDietMode('spicy', this)">🌶️ 嗜辣</span>
+  <span class="diet-pill active" data-mode="balanced" onclick="toggleDietMode('balanced', this)">🍽️ 均衡</span>
+  <span class="diet-pill" data-mode="lowcal" onclick="toggleDietMode('lowcal', this)">🥗 减脂</span>
+  <span class="diet-pill" data-mode="muscle" onclick="toggleDietMode('muscle', this)">💪 增肌</span>
+  <span class="diet-pill" data-mode="vegan" onclick="toggleDietMode('vegan', this)">🌱 纯素</span>
+  <span class="diet-pill" data-mode="glutenfree" onclick="toggleDietMode('glutenfree', this)">🌾 无麸质</span>
+  <span class="diet-pill" data-mode="nospice" onclick="toggleDietMode('nospice', this)">🚫 免辣</span>
+  <span class="diet-pill" data-mode="spicy" onclick="toggleDietMode('spicy', this)">🌶️ 嗜辣</span>
 </div>
+<div class="diet-hint">💡 可多选组合 · 免辣/嗜辣互斥 · 选任意标签自动取消均衡</div>
 
 <div class="action-bar">
   <button class="btn btn-primary" onclick="randomizeAll()">🎲 每日饭菜抽选</button>
@@ -307,6 +340,7 @@
       <div class="fridge-actions">
         <button onclick="selectFridgeAll()">全选</button>
         <button onclick="clearFridge()">清空</button>
+        <button onclick="consumeFridge()" style="background:#e8f5ea;color:#3d7040;border-color:#a0d8a8;font-weight:600;">🛒 消耗已用食材</button>
       </div>
     </div>
     <div id="fridgeTags"></div>
@@ -878,37 +912,52 @@ function getDishDetails(dishName, category) {
 }
 
 // ===================== 饮食模式过滤 =====================
-let dietMode = 'balanced'; // balanced | lowcal | muscle | vegan | glutenfree | nospice | spicy
+let dietModes = new Set(['balanced']); // 支持多选: balanced|lowcal|muscle|vegan|glutenfree|nospice|spicy
 
-function setDietMode(mode, el) {
-  dietMode = mode;
+function toggleDietMode(mode, el) {
+  // 互斥处理: 免辣 ↔ 嗜辣
+  if (mode === 'nospice' && dietModes.has('spicy')) dietModes.delete('spicy');
+  if (mode === 'spicy' && dietModes.has('nospice')) dietModes.delete('nospice');
+  // 选择任意特定模式时移除"均衡"
+  if (mode !== 'balanced' && dietModes.has('balanced')) dietModes.delete('balanced');
+  // 选择"均衡"时清空其他模式
+  if (mode === 'balanced') { dietModes.clear(); dietModes.add('balanced'); }
+  else {
+    // toggle
+    if (dietModes.has(mode)) dietModes.delete(mode);
+    else dietModes.add(mode);
+    // 如果所有模式都被取消，回退到均衡
+    if (dietModes.size === 0) dietModes.add('balanced');
+  }
+  // 更新UI
   document.querySelectorAll('.diet-pill').forEach(p => {
     p.classList.remove('active','active--muscle','active--vegan','active--spicy');
-    if (p.dataset.mode === mode) {
+    if (dietModes.has(p.dataset.mode)) {
       p.classList.add('active');
-      if (mode==='muscle') p.classList.add('active--muscle');
-      if (mode==='vegan') p.classList.add('active--vegan');
-      if (mode==='spicy') p.classList.add('active--spicy');
+      if (p.dataset.mode==='muscle') p.classList.add('active--muscle');
+      if (p.dataset.mode==='vegan') p.classList.add('active--vegan');
+      if (p.dataset.mode==='spicy') p.classList.add('active--spicy');
     }
   });
   randomizeAll();
 }
 
 function filterByDiet(dishArr, category) {
+  if (dietModes.has('balanced') || dietModes.size === 0) return dishArr;
   const filtered = dishArr.filter(dish => {
     const attrs = getDishAttrs(dish.name, category);
-    switch (dietMode) {
-      case 'vegan': return attrs.isVegan;
-      case 'glutenfree': return !attrs.hasGluten;
-      case 'nospice': return attrs.spicyLevel === 0;
-      case 'spicy': return attrs.spicyLevel >= 1;
-      case 'lowcal': return attrs.lowFatScore >= 2;
-      case 'muscle': return attrs.proteinLevel === 'high';
-      default: return true;
+    // 所有选中模式必须同时满足 (取交集)
+    for (const mode of dietModes) {
+      if (mode === 'vegan' && !attrs.isVegan) return false;
+      if (mode === 'glutenfree' && attrs.hasGluten) return false;
+      if (mode === 'nospice' && attrs.spicyLevel > 0) return false;
+      if (mode === 'spicy' && attrs.spicyLevel < 1) return false;
+      if (mode === 'lowcal' && attrs.lowFatScore < 2) return false;
+      if (mode === 'muscle' && attrs.proteinLevel !== 'high') return false;
     }
+    return true;
   });
-  // 如果过滤后没有菜品，回退到不过滤
-  if (filtered.length === 0) return dishArr;
+  if (filtered.length === 0) return dishArr; // 回退
   return filtered;
 }
 
@@ -1054,18 +1103,32 @@ function toggleFridge() {
 // ===================== 综合选菜引擎 (饮食模式 + 冰箱 + 随机) =====================
 
 function smartPick(dishArr, category) {
-  // 第1优先级: 冰箱匹配
+  // 先做饮食模式过滤
+  const dietFiltered = filterByDiet(dishArr, category);
+
+  // 冰箱模式: 加权随机 (70%冰箱匹配, 30%全局)
   if (isFridgeMode()) {
-    const fridgeResult = pickFromFridge(dishArr, category);
-    if (fridgeResult) {
-      // 再做饮食模式过滤
-      const postFilter = filterByDiet([fridgeResult], category);
-      if (postFilter.length > 0) return postFilter[0];
+    const scored = filterByFridge(dietFiltered, category);
+    if (scored && scored.length > 0) {
+      // 70%概率从冰箱匹配中选, 30%从所有饮食过滤中选
+      if (Math.random() < 0.7) {
+        return weightedPick(scored);
+      }
     }
   }
-  // 第2优先级: 饮食模式过滤后随机
-  const dietFiltered = filterByDiet(dishArr, category);
   return pick(dietFiltered);
+}
+
+// 加权随机: 匹配度越高的菜品越容易被选中
+function weightedPick(scored) {
+  const weights = scored.map(s => s.score * s.score); // 平方放大差异
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < scored.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return scored[i].dish;
+  }
+  return scored[scored.length - 1].dish;
 }
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -1344,13 +1407,24 @@ function makeFlipRow(item, category) {
   const details = getDishDetails(item.name, category);
   const cls = item.labelClass || 'dish-label--main';
   const attrs = getDishAttrs(item.name, category);
+  // 冰箱匹配检测
+  let fridgeBadge = '';
+  if (isFridgeMode()) {
+    const tokens = getDishKeywordTokens(item.name, details);
+    const sel = getSelectedFridgeIngredients();
+    let hitCount = 0;
+    for (const t of tokens) { if (sel.has(t)) hitCount++; }
+    if (hitCount >= 1) {
+      fridgeBadge = `<span class="fridge-badge">✨${hitCount}种食材已备</span>`;
+    }
+  }
   return `
     <div class="flip-row" onclick="toggleFlip(this, event)">
       <div class="flip-inner">
         <div class="flip-front">
           <span class="dish-label ${cls}">${item.label||''}</span>
           <div style="flex:1">
-            <div class="dish-name">${item.name}</div>
+            <div class="dish-name">${item.name}${fridgeBadge}</div>
             ${item.desc?`<div class="dish-desc">${item.desc}</div>`:''}
             <div class="dish-cal-row">🔥 ≈${attrs.calPerServing}kcal/份${attrs.spicyLevel>0?' · 🌶️':''}${attrs.isVegan?' · 🌱':''}${attrs.hasGluten?' · 🌾':''}${attrs.proteinLevel==='high'?' · 💪':''}</div>
           </div>
@@ -1445,6 +1519,60 @@ function toggleFlip(row, e) {
   }
 }
 
+// ===================== 老虎机动画 =====================
+
+function slotAnimate(cardIds, callback, delay) {
+  // 对每个卡片快速切换随机菜品 6 帧
+  const frames = 6;
+  const frameInterval = 80;
+  let count = 0;
+
+  // 保存原始数据
+  const orig = { ...currentDay };
+
+  function tick() {
+    if (count >= frames) {
+      // 动画结束，恢复最终结果
+      currentDay = callback();
+      renderAll();
+      // settle 动画
+      cardIds.forEach(id => {
+        const card = document.getElementById(id);
+        if (card) { card.classList.add('settled'); setTimeout(()=>card.classList.remove('settled'), 400); }
+      });
+      return;
+    }
+    // 快闪随机
+    const temp = generateDayMenu();
+    currentDay = temp;
+    renderAllSilent();
+    count++;
+    setTimeout(tick, frameInterval);
+  }
+
+  setTimeout(tick, delay || 0);
+}
+
+// 安静渲染（不做cal更新动画）
+function renderAllSilent() {
+  const d = currentDay;
+  renderCard('cardMorning', [{ label:'早餐', labelClass:'dish-label--bf', name:d.breakfast?.name||'', desc:d.breakfast?.desc||'' }], 'breakfast');
+  if (d.lunchMeatItem) renderCard('cardNoon', [
+    { label:'荤菜', labelClass:'dish-label--meat',   name:d.lunchMeatItem.name,    desc:d.lunchMeatItem.desc },
+    { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' },
+    { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'', desc:d.lunchStapleItem?.desc||'' },
+  ], 'lunch');
+  if (d.dinnerVeggieItem) renderCard('cardNight', [
+    { label:'蔬菜', labelClass:'dish-label--veggie', name:d.dinnerVeggieItem.name, desc:d.dinnerVeggieItem.desc },
+    { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem?.name||'',   desc:d.dinnerSoupItem?.desc||'' },
+    { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem?.name||'', desc:d.dinnerStapleItem?.desc||'' },
+  ], 'dinner');
+  if (d.dessertItem) renderCard('cardTreat', [
+    { label:'甜品', labelClass:'dish-label--dessert', name:d.dessertItem?.name||'', desc:d.dessertItem?.desc||'' },
+    { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
+  ], 'treat');
+}
+
 // ===================== 按钮交互 =====================
 
 function randomizeAll() {
@@ -1452,55 +1580,80 @@ function randomizeAll() {
     el.classList.remove('flipped'); el.style.height='';
     const r = el.closest('.flip-row'); if(r) r.style.margin='';
   });
-  currentDay = generateDayMenu();
-  renderAll();
   const btn = document.querySelector('.btn-primary');
   if (btn) { btn.style.transform='scale(0.95)'; setTimeout(()=>{btn.style.transform='';},120); }
+  // 老虎机动画
+  slotAnimate(['cardMorning','cardNoon','cardNight','cardTreat'], () => generateDayMenu(), 0);
+  setTimeout(() => updateCalSummary(), 550);
 }
 
 function randomizeMeal(meal) {
-  const prefix = meal==='morning'?'cardMorning':meal==='noon'?'cardNoon':meal==='night'?'cardNight':'cardTreat';
+  const prefixes = {morning:'cardMorning',noon:'cardNoon',night:'cardNight',treat:'cardTreat'};
+  const prefix = prefixes[meal] || 'cardMorning';
   const card = document.getElementById(prefix);
   if (card) card.querySelectorAll('.flip-inner.flipped').forEach(el => {
     el.classList.remove('flipped'); el.style.height='';
     const r=el.closest('.flip-row'); if(r) r.style.margin='';
   });
   if (!currentDay || !currentDay.breakfast) currentDay = generateDayMenu();
-  switch (meal) {
-    case 'morning':
-      currentDay.breakfast = pick(DISH_DB.breakfast);
-      renderCard('cardMorning', [{ label:'早餐', labelClass:'dish-label--bf', name:currentDay.breakfast.name, desc:currentDay.breakfast.desc }], 'breakfast');
-      break;
-    case 'noon':
-      currentDay.lunchMeatItem = smartPick(DISH_DB.lunchMeat, 'meat');
-      currentDay.lunchVeggieItem = smartPick(DISH_DB.lunchVeggie, 'veggie');
-      currentDay.lunchStapleItem = smartPick(DISH_DB.lunchStaple, 'staple');
-      renderCard('cardNoon', [
-        { label:'荤菜', labelClass:'dish-label--meat',   name:currentDay.lunchMeatItem.name,    desc:currentDay.lunchMeatItem.desc },
-        { label:'素菜', labelClass:'dish-label--veggie', name:currentDay.lunchVeggieItem.name,  desc:currentDay.lunchVeggieItem.desc },
-        { label:'主食', labelClass:'dish-label--staple', name:currentDay.lunchStapleItem.name,  desc:currentDay.lunchStapleItem.desc||'' },
-      ], 'lunch');
-      break;
-    case 'night':
-      currentDay.dinnerVeggieItem = smartPick(DISH_DB.dinnerVeggie, 'veggie');
-      currentDay.dinnerSoupItem = smartPick(DISH_DB.dinnerSoup, 'soup');
-      currentDay.dinnerStapleItem = smartPick(DISH_DB.dinnerStaple, 'staple');
-      renderCard('cardNight', [
-        { label:'蔬菜', labelClass:'dish-label--veggie', name:currentDay.dinnerVeggieItem.name, desc:currentDay.dinnerVeggieItem.desc },
-        { label:'汤品', labelClass:'dish-label--soup',   name:currentDay.dinnerSoupItem.name,   desc:currentDay.dinnerSoupItem.desc },
-        { label:'主食', labelClass:'dish-label--staple', name:currentDay.dinnerStapleItem.name, desc:currentDay.dinnerStapleItem.desc||'' },
-      ], 'dinner');
-      break;
-    case 'treat':
-      currentDay.dessertItem = smartPick(DISH_DB.desserts, 'dessert');
-      currentDay.drinkItem = smartPick(DISH_DB.drinks, 'drink');
-      renderCard('cardTreat', [
-        { label:'甜品', labelClass:'dish-label--dessert', name:currentDay.dessertItem?.name||'', desc:currentDay.dessertItem?.desc||'' },
-        { label:'饮品', labelClass:'dish-label--drink',   name:currentDay.drinkItem?.name||'',   desc:currentDay.drinkItem?.desc||'' },
-      ], 'treat');
-      break;
+
+  slotAnimate([prefix], () => {
+    switch (meal) {
+      case 'morning': currentDay.breakfast = pick(DISH_DB.breakfast); break;
+      case 'noon':
+        currentDay.lunchMeatItem = smartPick(DISH_DB.lunchMeat, 'meat');
+        currentDay.lunchVeggieItem = smartPick(DISH_DB.lunchVeggie, 'veggie');
+        currentDay.lunchStapleItem = smartPick(DISH_DB.lunchStaple, 'staple');
+        break;
+      case 'night':
+        currentDay.dinnerVeggieItem = smartPick(DISH_DB.dinnerVeggie, 'veggie');
+        currentDay.dinnerSoupItem = smartPick(DISH_DB.dinnerSoup, 'soup');
+        currentDay.dinnerStapleItem = smartPick(DISH_DB.dinnerStaple, 'staple');
+        break;
+      case 'treat':
+        currentDay.dessertItem = smartPick(DISH_DB.desserts, 'dessert');
+        currentDay.drinkItem = smartPick(DISH_DB.drinks, 'drink');
+        break;
+    }
+    return currentDay;
+  }, 0);
+  setTimeout(() => updateCalSummary(), 550);
+}
+
+// ===================== 冰箱消耗 =====================
+
+function consumeFridge() {
+  if (!isFridgeMode()) return;
+  // 收集当前菜单中所有用到的冰箱食材
+  const usedIngredientIds = new Set();
+  const items = [
+    currentDay.breakfast,
+    currentDay.lunchMeatItem, currentDay.lunchVeggieItem, currentDay.lunchStapleItem,
+    currentDay.dinnerVeggieItem, currentDay.dinnerSoupItem, currentDay.dinnerStapleItem,
+    currentDay.dessertItem, currentDay.drinkItem,
+  ];
+  for (const item of items) {
+    if (!item || !item.name) continue;
+    const details = getDishDetails(item.name, '');
+    const tokens = getDishKeywordTokens(item.name, details);
+    for (const t of tokens) {
+      if (fridgeSelection.has(t)) usedIngredientIds.add(t);
+    }
   }
-  updateCalSummary();
+  if (usedIngredientIds.size === 0) {
+    alert('当前菜单中没有用到冰箱中的食材，无需消耗。');
+    return;
+  }
+  // 移除用掉的食材
+  for (const id of usedIngredientIds) fridgeSelection.delete(id);
+  // 更新UI
+  renderFridgeTags();
+  // 闪烁冰箱按钮提醒
+  const btn = document.getElementById('fridgeToggle');
+  if (btn) {
+    btn.style.boxShadow = '0 0 0 6px rgba(90,154,106,0.2)';
+    setTimeout(() => { btn.style.boxShadow = ''; }, 800);
+  }
 }
 
 // ===================== DOM初始化 =====================
