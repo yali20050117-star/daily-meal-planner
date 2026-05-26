@@ -229,23 +229,23 @@
     position: absolute; inset: 0; z-index: 10; border-radius: 0 0 var(--radius) var(--radius);
     overflow: hidden; pointer-events: none;
   }
-  .reel-stripes {
+  .reel-emojis {
     position: absolute; inset: 0;
-    background: repeating-linear-gradient(0deg,
-      rgba(160,210,160,0.92) 0px, rgba(160,210,160,0.92) 14px,
-      rgba(248,195,195,0.78) 14px, rgba(248,195,195,0.78) 26px,
-      rgba(255,235,170,0.88) 26px, rgba(255,235,170,0.88) 38px,
-      rgba(220,200,230,0.72) 38px, rgba(220,200,230,0.72) 46px
-    );
-    animation: reelRace 0.2s linear infinite;
-    will-change: background-position;
+    display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(8, 1fr);
+    place-items: center; font-size: 1.5rem;
+    will-change: contents;
   }
-  @keyframes reelRace {
-    0% { background-position-y: 0; }
-    100% { background-position-y: -124px; }
+  .reel-emojis span {
+    display: flex; align-items: center; justify-content: center;
+    animation: emojiPop 0.22s ease-in-out;
   }
-  .reel-stripes.slowing { animation-duration: 0.35s; }
-  .reel-stripes.stopping { animation-duration: 0.7s; animation-timing-function: cubic-bezier(0.2,0.9,0.3,1); }
+  @keyframes emojiPop {
+    0% { transform: scale(0.6); opacity: 0.3; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .reel-emojis.slowing span { animation-duration: 0.4s; }
+  .reel-emojis.stopping span { animation-duration: 0.7s; animation-timing-function: cubic-bezier(0.2,0.9,0.3,1); }
   .reel-blur {
     filter: blur(4px) !important;
     transition: filter 0.15s;
@@ -304,7 +304,7 @@
     100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
   }
   .particle {
-    position: absolute; pointer-events: none; z-index: 20;
+    position: fixed; pointer-events: none; z-index: 999;
     font-size: 1rem; font-weight: 700;
     animation: particleBurst 0.9s cubic-bezier(0,0.6,0.4,1) forwards;
     filter: drop-shadow(0 0 4px var(--glow, gold));
@@ -1674,19 +1674,41 @@ function spinReel(cardId, finalRenderFn, spinDuration, startDelay) {
   setTimeout(() => {
     // Phase 1: 下拉预备 (100ms)
     card.classList.add('reel-anticipation');
-    // 添加条纹覆盖层
+    // 添加表情覆盖层
     const overlay = document.createElement('div');
     overlay.className = 'reel-overlay';
-    overlay.innerHTML = '<div class="reel-stripes"></div>';
+    const emojiGrid = document.createElement('div');
+    emojiGrid.className = 'reel-emojis';
+    // 创建 6×8 = 48 个表情格子
+    for (let i = 0; i < 48; i++) {
+      const span = document.createElement('span');
+      span.textContent = '🥬';
+      emojiGrid.appendChild(span);
+    }
+    overlay.appendChild(emojiGrid);
     body.appendChild(overlay);
 
+    // 食物表情池
+    const emojiPool = ['🥬','🥦','🥒','🥕','🍅','🌽','🧅','🍆','🥩','🍗','🍖','🥓','🐟','🦐','🍚','🍜','🍞','🥟','🥚','🧀','🍳','🥗','🍲','🫕'];
+
+    // 0.25s 刷新表情
+    let emojiInterval;
+
     setTimeout(() => {
-      // Phase 2: 高速旋转 — 营养色块动态模糊
+      // Phase 2: 高速旋转 — 表情交替 + 动态模糊
       card.classList.remove('reel-anticipation');
       body.classList.add('reel-blur');
-      // 0.2s 间隔闪烁
+      // 启动表情刷新
+      emojiInterval = setInterval(() => {
+        const spans = emojiGrid.querySelectorAll('span');
+        spans.forEach(s => {
+          s.textContent = emojiPool[Math.floor(Math.random() * emojiPool.length)];
+        });
+      }, 250);
+
+      // 0.25s 间隔闪烁菜名
       let flashCount = 0;
-      const flashTotal = Math.floor(spinDuration / 200);
+      const flashTotal = Math.floor(spinDuration / 250);
       const flashInterval = setInterval(() => {
         const mealType = CARD_MEAL_MAP[cardId];
         if (mealType) {
@@ -1696,12 +1718,21 @@ function spinReel(cardId, finalRenderFn, spinDuration, startDelay) {
         flashCount++;
         if (flashCount >= flashTotal) {
           clearInterval(flashInterval);
-          // Phase 3: 减速
-          const stripes = overlay.querySelector('.reel-stripes');
-          if (stripes) {
-            stripes.classList.add('slowing');
-            setTimeout(() => stripes.classList.add('stopping'), 200);
-          }
+          clearInterval(emojiInterval);
+          // Phase 3: 减速 — 表情减慢刷新
+          let slowTicks = 0;
+          const slowInterval = setInterval(() => {
+            const spans = emojiGrid.querySelectorAll('span');
+            spans.forEach(s => {
+              s.textContent = emojiPool[Math.floor(Math.random() * emojiPool.length)];
+            });
+            slowTicks++;
+            if (slowTicks === 1) emojiGrid.classList.add('slowing');
+            if (slowTicks >= 3) {
+              clearInterval(slowInterval);
+              emojiGrid.classList.add('stopping');
+            }
+          }, 350);
           body.classList.remove('reel-blur');
           body.style.filter = 'blur(1.5px)';
           body.style.transition = 'filter 0.25s';
@@ -1719,7 +1750,7 @@ function spinReel(cardId, finalRenderFn, spinDuration, startDelay) {
             }, 500);
           }, 400);
         }
-      }, 200);
+      }, 250);
     }, 100);
   }, startDelay || 0);
 }
@@ -1763,16 +1794,12 @@ function renderOneCard(cardId, dish) {
 // 全部转轮：阶梯启动 + 异步定格
 function spinAllReels() {
   // 四轮同时启动，异步定格: 早餐1s / 午饭1.5s / 晚饭2s / 甜品2.5s
-  // 每个转轮: 100ms预备 + flashTotal*200ms + 400ms减速 = 总时长
-  // 早餐: 100 + 1*200 + 400 = 700ms → 取flashTotal=3 → 100+600+400=1100ms ≈ 1.1s
-  // 午饭: flashTotal=5 → 100+1000+400=1500ms
-  // 晚饭: flashTotal=7 → 100+1400+400=1900ms ≈ 2s
-  // 甜品: flashTotal=10 → 100+2000+400=2500ms
+  // 每个转轮: 100ms预备 + flashTotal*250ms + 400ms减速 = 总时长
   const sequence = [
-    { id: 'cardMorning', duration: 600, delay: 0 },   // 600ms spin, 定格约1.1s
-    { id: 'cardNoon',    duration: 1000, delay: 0 },   // 1000ms spin, 定格约1.5s
-    { id: 'cardNight',   duration: 1400, delay: 0 },   // 1400ms spin, 定格约1.9s
-    { id: 'cardTreat',   duration: 2000, delay: 0 },   // 2000ms spin, 定格约2.5s
+    { id: 'cardMorning', duration: 500, delay: 0 },   // 2帧×250ms, 定格≈1s
+    { id: 'cardNoon',    duration: 1000, delay: 0 },   // 4帧×250ms, 定格≈1.5s
+    { id: 'cardNight',   duration: 1500, delay: 0 },   // 6帧×250ms, 定格≈2s
+    { id: 'cardTreat',   duration: 2000, delay: 0 },   // 8帧×250ms, 定格≈2.5s
   ];
 
   const newDay = generateDayMenu();
@@ -1893,30 +1920,34 @@ function triggerCelebration() {
 }
 
 function spawnFridgeParticles() {
-  const emojis = ['✨','⭐','🌟','💚','❤️','💛','🟢','🔴','🟡','💫','🔥','🎯'];
-  const glowColors = ['#4caf7c','#e07b3c','#f0c040','#ff6b8a','#6cd0ff','#c080ff','#ff9060'];
+  const emojis = ['✨','⭐','🌟','💚','❤️','💛','🟢','🔴','🟡','💫','🔥','🎯','💖','🎆','🎇','🧨'];
+  const glowColors = ['#4caf7c','#e07b3c','#f0c040','#ff6b8a','#6cd0ff','#c080ff','#ff9060','#ff4080','#40ff80'];
   const cards = ['cardMorning','cardNoon','cardNight','cardTreat'];
   cards.forEach(cardId => {
     const card = document.getElementById(cardId);
     if (!card) return;
     const badges = card.querySelectorAll('.fridge-badge');
     badges.forEach(badge => {
-      // 每个 badge 炸出 8 颗彩色粒子
-      for (let i = 0; i < 8; i++) {
+      // 获取 badge 在屏幕上的坐标
+      const rect = badge.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+      // 每个 badge 炸出 12 颗全屏彩色粒子
+      for (let i = 0; i < 12; i++) {
         const p = document.createElement('span');
         p.className = 'particle';
         p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        p.style.left = badge.offsetLeft + 'px';
-        p.style.top = badge.offsetTop + 'px';
+        p.style.left = originX + 'px';
+        p.style.top = originY + 'px';
         p.style.setProperty('--glow', glowColors[Math.floor(Math.random() * glowColors.length)]);
-        const angle = (Math.PI * 2 * i) / 8 + (Math.random() - 0.5) * 0.6;
-        const dist = 60 + Math.random() * 90;
-        p.style.setProperty('--px', Math.cos(angle) * dist * 0.5 + 'px');
-        p.style.setProperty('--py', Math.sin(angle) * dist * 0.5 - 30 + 'px');
-        p.style.setProperty('--px2', Math.cos(angle) * dist + (Math.random()-0.5)*40 + 'px');
-        p.style.setProperty('--py2', Math.sin(angle) * dist - 15 + (Math.random()-0.5)*40 + 'px');
-        card.appendChild(p);
-        setTimeout(() => p.remove(), 950);
+        const angle = (Math.PI * 2 * i) / 12 + (Math.random() - 0.5) * 0.4;
+        const dist = 80 + Math.random() * 160; // 更广的爆炸范围
+        p.style.setProperty('--px', Math.cos(angle) * dist * 0.4 + 'px');
+        p.style.setProperty('--py', Math.sin(angle) * dist * 0.4 - 40 + 'px');
+        p.style.setProperty('--px2', Math.cos(angle) * dist + (Math.random()-0.5)*80 + 'px');
+        p.style.setProperty('--py2', Math.sin(angle) * dist - 20 + (Math.random()-0.5)*80 + 'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
       }
     });
   });
