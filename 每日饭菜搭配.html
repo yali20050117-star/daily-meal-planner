@@ -432,6 +432,8 @@
     <div class="action-bar">
       <button class="btn btn-primary" onclick="randomizeAll()">🎲 每日饭菜抽选</button>
       <button class="btn btn-outline fridge-toggle-btn" id="fridgeToggle" onclick="toggleFridge()">🧊 冰箱余粮<span class="badge" id="fridgeBadge"></span></button>
+  <button class="btn btn-outline" id="btnLunchMode" onclick="toggleLunchMode()">🥩 一荤一素</button>
+  <button class="btn btn-outline" id="btnToggleTreats" onclick="toggleTreats()">🍰 甜品饮品</button>
       <button class="btn btn-outline" onclick="randomizeMeal('morning')">重抽早餐</button>
       <button class="btn btn-outline" onclick="randomizeMeal('noon')">重抽午饭</button>
       <button class="btn btn-outline" onclick="randomizeMeal('night')">重抽晚饭</button>
@@ -1272,7 +1274,7 @@ function computeDailyCalories(dayMenu) {
   let total = 0;
   const items = [
     dayMenu.breakfast,
-    dayMenu.lunchMeatItem, dayMenu.lunchVeggieItem, dayMenu.lunchStapleItem,
+    dayMenu.lunchMeatItem, dayMenu.lunchVeggieItem, dayMenu.lunchVeggie2Item, dayMenu.lunchStapleItem,
     dayMenu.dinnerVeggieItem, dayMenu.dinnerSoupItem, dayMenu.dinnerStapleItem,
     dayMenu.dessertItem, dayMenu.drinkItem,
   ];
@@ -1305,17 +1307,31 @@ function updateCalSummary() {
 let currentDay = {};
 
 function generateDayMenu() {
-  return {
+  const menu = {
     breakfast: pick(DISH_DB.breakfast),
-    lunchMeatItem: smartPick(DISH_DB.lunchMeat, 'meat'),
     lunchVeggieItem: smartPick(DISH_DB.lunchVeggie, 'veggie'),
     lunchStapleItem: smartPick(DISH_DB.lunchStaple, 'staple'),
     dinnerVeggieItem: smartPick(DISH_DB.dinnerVeggie, 'veggie'),
     dinnerSoupItem: smartPick(DISH_DB.dinnerSoup, 'soup'),
     dinnerStapleItem: smartPick(DISH_DB.dinnerStaple, 'staple'),
-    dessertItem: smartPick(DISH_DB.desserts, 'dessert'),
-    drinkItem: smartPick(DISH_DB.drinks, 'drink'),
   };
+  // 午餐模式
+  if (lunchMode === 'two-veggie') {
+    menu.lunchMeatItem = null;
+    menu.lunchVeggie2Item = smartPick(DISH_DB.lunchVeggie, 'veggie');
+  } else {
+    menu.lunchMeatItem = smartPick(DISH_DB.lunchMeat, 'meat');
+    menu.lunchVeggie2Item = null;
+  }
+  // 甜品饮品
+  if (showTreats) {
+    menu.dessertItem = smartPick(DISH_DB.desserts, 'dessert');
+    menu.drinkItem = smartPick(DISH_DB.drinks, 'drink');
+  } else {
+    menu.dessertItem = null;
+    menu.drinkItem = null;
+  }
+  return menu;
 }
 
 // ===================== 周计划数据 =====================
@@ -1329,6 +1345,26 @@ function initWeek() {
 
 // ===================== 视图模式 =====================
 let viewMode = 'daily'; // daily | weekly
+let showTreats = true;  // 甜品饮品开关
+let lunchMode = 'meat-veggie'; // 'meat-veggie' | 'two-veggie'
+
+function toggleTreats() {
+  showTreats = !showTreats;
+  const btn = document.getElementById('btnToggleTreats');
+  const card = document.getElementById('cardTreat');
+  if (btn) btn.classList.toggle('active', !showTreats);
+  if (card) card.style.display = showTreats ? '' : 'none';
+  if (!showTreats) { currentDay.dessertItem = null; currentDay.drinkItem = null; }
+  updateCalSummary();
+  renderAll();
+}
+
+function toggleLunchMode() {
+  lunchMode = lunchMode === 'meat-veggie' ? 'two-veggie' : 'meat-veggie';
+  const btn = document.getElementById('btnLunchMode');
+  if (btn) btn.textContent = lunchMode === 'two-veggie' ? '🥬 两素' : '🥩 一荤一素';
+  randomizeMeal('noon');
+}
 
 function setViewMode(mode) {
   viewMode = mode;
@@ -1577,20 +1613,32 @@ function renderAll() {
   renderCard('cardMorning', [
     { label:'早餐', labelClass:'dish-label--bf', name:d.breakfast.name, desc:d.breakfast.desc },
   ], 'breakfast');
-  renderCard('cardNoon', [
-    { label:'荤菜', labelClass:'dish-label--meat',   name:d.lunchMeatItem.name,    desc:d.lunchMeatItem.desc },
-    { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem.name,  desc:d.lunchVeggieItem.desc },
-    { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem.name,  desc:d.lunchStapleItem.desc||'' },
-  ], 'lunch');
+  // 午餐根据模式渲染
+  const lunchItems = [];
+  if (lunchMode === 'two-veggie') {
+    lunchItems.push({ label:'素菜①', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' });
+    if (d.lunchVeggie2Item) lunchItems.push({ label:'素菜②', labelClass:'dish-label--veggie', name:d.lunchVeggie2Item.name, desc:d.lunchVeggie2Item.desc||'' });
+  } else {
+    lunchItems.push({ label:'荤菜', labelClass:'dish-label--meat', name:d.lunchMeatItem?.name||'', desc:d.lunchMeatItem?.desc||'' });
+    lunchItems.push({ label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' });
+  }
+  lunchItems.push({ label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'', desc:d.lunchStapleItem?.desc||'' });
+  renderCard('cardNoon', lunchItems, 'lunch');
+
   renderCard('cardNight', [
     { label:'蔬菜', labelClass:'dish-label--veggie', name:d.dinnerVeggieItem.name, desc:d.dinnerVeggieItem.desc },
     { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem.name,   desc:d.dinnerSoupItem.desc },
     { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem.name, desc:d.dinnerStapleItem.desc||'' },
   ], 'dinner');
-  renderCard('cardTreat', [
-    { label:'甜品', labelClass:'dish-label--dessert', name:d.dessertItem?.name||'', desc:d.dessertItem?.desc||'' },
-    { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
-  ], 'treat');
+  if (showTreats) {
+    renderCard('cardTreat', [
+      { label:'甜品', labelClass:'dish-label--dessert', name:d.dessertItem?.name||'', desc:d.dessertItem?.desc||'' },
+      { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
+    ], 'treat');
+    document.getElementById('cardTreat').style.display = '';
+  } else {
+    document.getElementById('cardTreat').style.display = 'none';
+  }
   updateCalSummary();
 }
 
@@ -1778,22 +1826,25 @@ function spinAllReels() {
   let stoppedCount = 0;
   const total = 4;
 
-  // 早餐先停 → +0.75s午饭 → +1.5s晚饭 → +2.25s甜品 (原版+2s延长)
+  // 四轮同时旋转、同时定格揭晓
   const reels = [
-    { id: 'cardMorning', win: newDay.breakfast.name, dur: 3100,
+    { id: 'cardMorning', win: newDay.breakfast.name,
       render: () => { currentDay.breakfast = newDay.breakfast; renderFinalCard('cardMorning'); } },
-    { id: 'cardNoon', win: newDay.lunchMeatItem.name, dur: 3600,
-      render: () => { currentDay.lunchMeatItem = newDay.lunchMeatItem; currentDay.lunchVeggieItem = newDay.lunchVeggieItem; currentDay.lunchStapleItem = newDay.lunchStapleItem; renderFinalCard('cardNoon'); } },
-    { id: 'cardNight', win: newDay.dinnerVeggieItem.name, dur: 4100,
+    { id: 'cardNoon', win: lunchMode==='two-veggie' ? newDay.lunchVeggieItem.name : newDay.lunchMeatItem.name,
+      render: () => { currentDay.lunchMeatItem = newDay.lunchMeatItem; currentDay.lunchVeggieItem = newDay.lunchVeggieItem; if(newDay.lunchVeggie2Item) currentDay.lunchVeggie2Item = newDay.lunchVeggie2Item; currentDay.lunchStapleItem = newDay.lunchStapleItem; renderFinalCard('cardNoon'); } },
+    { id: 'cardNight', win: newDay.dinnerVeggieItem.name,
       render: () => { currentDay.dinnerVeggieItem = newDay.dinnerVeggieItem; currentDay.dinnerSoupItem = newDay.dinnerSoupItem; currentDay.dinnerStapleItem = newDay.dinnerStapleItem; renderFinalCard('cardNight'); } },
-    { id: 'cardTreat', win: newDay.dessertItem.name, dur: 4600,
-      render: () => { currentDay.dessertItem = newDay.dessertItem; currentDay.drinkItem = newDay.drinkItem; renderFinalCard('cardTreat'); } },
   ];
+  if (showTreats) {
+    reels.push({ id: 'cardTreat', win: newDay.dessertItem.name,
+      render: () => { currentDay.dessertItem = newDay.dessertItem; currentDay.drinkItem = newDay.drinkItem; renderFinalCard('cardTreat'); } });
+  }
+  const total = reels.length;
 
-  reels.forEach(({ id, win, dur, render }) => {
+  reels.forEach(({ id, win, render }) => {
     const fn = () => { render(); stoppedCount++; if (stoppedCount >= total) { setTimeout(() => triggerCelebration(), 300); updateCalSummary(); } };
     fn._winName = win;
-    spinReel(id, fn, dur);
+    spinReel(id, fn, 3100);
   });
 }
 
@@ -1803,13 +1854,19 @@ function renderFinalCard(cardId) {
     case 'cardMorning':
       renderCard('cardMorning', [{ label:'早餐', labelClass:'dish-label--bf', name:d.breakfast?.name||'', desc:d.breakfast?.desc||'' }], 'breakfast');
       break;
-    case 'cardNoon':
-      renderCard('cardNoon', [
-        { label:'荤菜', labelClass:'dish-label--meat', name:d.lunchMeatItem?.name||'', desc:d.lunchMeatItem?.desc||'' },
-        { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' },
-        { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'', desc:d.lunchStapleItem?.desc||'' },
-      ], 'lunch');
+    case 'cardNoon': {
+      const items = [];
+      if (lunchMode === 'two-veggie') {
+        items.push({ label:'素菜①', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' });
+        if (d.lunchVeggie2Item) items.push({ label:'素菜②', labelClass:'dish-label--veggie', name:d.lunchVeggie2Item.name, desc:d.lunchVeggie2Item.desc||'' });
+      } else {
+        items.push({ label:'荤菜', labelClass:'dish-label--meat', name:d.lunchMeatItem?.name||'', desc:d.lunchMeatItem?.desc||'' });
+        items.push({ label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' });
+      }
+      items.push({ label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'', desc:d.lunchStapleItem?.desc||'' });
+      renderCard('cardNoon', items, 'lunch');
       break;
+    }
     case 'cardNight':
       renderCard('cardNight', [
         { label:'蔬菜', labelClass:'dish-label--veggie', name:d.dinnerVeggieItem?.name||'', desc:d.dinnerVeggieItem?.desc||'' },
@@ -1834,7 +1891,7 @@ function triggerCelebration() {
   let fridgeMatchCount = 0;
   if (isFridgeMode()) {
     const items = [
-      currentDay.breakfast, currentDay.lunchMeatItem, currentDay.lunchVeggieItem, currentDay.lunchStapleItem,
+      currentDay.breakfast, currentDay.lunchMeatItem, currentDay.lunchVeggieItem, currentDay.lunchVeggie2Item, currentDay.lunchStapleItem,
       currentDay.dinnerVeggieItem, currentDay.dinnerSoupItem, currentDay.dinnerStapleItem,
       currentDay.dessertItem, currentDay.drinkItem,
     ];
@@ -1939,9 +1996,16 @@ function randomizeMeal(meal) {
     switch (meal) {
       case 'morning': currentDay.breakfast = pick(DISH_DB.breakfast); break;
       case 'noon':
-        currentDay.lunchMeatItem = smartPick(DISH_DB.lunchMeat, 'meat');
-        currentDay.lunchVeggieItem = smartPick(DISH_DB.lunchVeggie, 'veggie');
-        currentDay.lunchStapleItem = smartPick(DISH_DB.lunchStaple, 'staple');
+        if (lunchMode === 'two-veggie') {
+          currentDay.lunchMeatItem = null;
+          currentDay.lunchVeggieItem = smartPick(DISH_DB.lunchVeggie, 'veggie');
+          currentDay.lunchVeggie2Item = smartPick(DISH_DB.lunchVeggie, 'veggie');
+        } else {
+          currentDay.lunchMeatItem = smartPick(DISH_DB.lunchMeat, 'meat');
+          currentDay.lunchVeggieItem = smartPick(DISH_DB.lunchVeggie, 'veggie');
+          currentDay.lunchVeggie2Item = null;
+        }
+        currentDay.lunchStapleItem = smartPick(DISH_DB.lunchStaple, 'staple')
         break;
       case 'night':
         currentDay.dinnerVeggieItem = smartPick(DISH_DB.dinnerVeggie, 'veggie');
@@ -1949,8 +2013,10 @@ function randomizeMeal(meal) {
         currentDay.dinnerStapleItem = smartPick(DISH_DB.dinnerStaple, 'staple');
         break;
       case 'treat':
-        currentDay.dessertItem = smartPick(DISH_DB.desserts, 'dessert');
-        currentDay.drinkItem = smartPick(DISH_DB.drinks, 'drink');
+        if (showTreats) {
+          currentDay.dessertItem = smartPick(DISH_DB.desserts, 'dessert');
+          currentDay.drinkItem = smartPick(DISH_DB.drinks, 'drink');
+        }
         break;
     }
     renderFinalCard(cardId);
@@ -1961,7 +2027,7 @@ function randomizeMeal(meal) {
   // 确定 win name
   switch (meal) {
     case 'morning': winName = currentDay.breakfast?.name || ''; break;
-    case 'noon': winName = currentDay.lunchMeatItem?.name || ''; break;
+    case 'noon': winName = lunchMode==='two-veggie' ? (currentDay.lunchVeggieItem?.name||'') : (currentDay.lunchMeatItem?.name||''); break;
     case 'night': winName = currentDay.dinnerVeggieItem?.name || ''; break;
     case 'treat': winName = currentDay.dessertItem?.name || ''; break;
   }
@@ -1976,7 +2042,7 @@ function consumeFridge() {
   const usedIngredientIds = new Set();
   const items = [
     currentDay.breakfast,
-    currentDay.lunchMeatItem, currentDay.lunchVeggieItem, currentDay.lunchStapleItem,
+    currentDay.lunchMeatItem, currentDay.lunchVeggieItem, currentDay.lunchVeggie2Item, currentDay.lunchStapleItem,
     currentDay.dinnerVeggieItem, currentDay.dinnerSoupItem, currentDay.dinnerStapleItem,
     currentDay.dessertItem, currentDay.drinkItem,
   ];
