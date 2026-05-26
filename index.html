@@ -2071,14 +2071,14 @@ function consumeFridge() {
 function buildDOM() {
   const grid = document.getElementById('mealsGrid');
   const cards = [
-    { id:'cardMorning', cls:'meal-card--morning', icon:'🌅', title:'早餐 · 营养早餐', hint:'粗粮+蛋白+蔬果' },
-    { id:'cardNoon',    cls:'meal-card--noon',    icon:'☀️', title:'午饭 · 一荤一素',   hint:'荤素搭配 + 主食' },
-    { id:'cardNight',   cls:'meal-card--night',   icon:'🌙', title:'晚饭 · 一蔬一汤',   hint:'清淡养胃 + 主食' },
-    { id:'cardTreat',   cls:'meal-card--treat',   icon:'🍰', title:'甜品 & 饮品',      hint:'一甜一饮 · 锦上添花' },
+    { id:'cardMorning', cls:'meal-card--morning', icon:'🌅', title:'早餐' },
+    { id:'cardNoon',    cls:'meal-card--noon',    icon:'☀️', title:'午餐' },
+    { id:'cardNight',   cls:'meal-card--night',   icon:'🌙', title:'晚餐' },
+    { id:'cardTreat',   cls:'meal-card--treat',   icon:'🍰', title:'甜品' },
   ];
   grid.innerHTML = cards.map(c => `
     <div class="meal-card ${c.cls}" id="${c.id}">
-      <div class="meal-card__header"><span class="icon">${c.icon}</span><span>${c.title}</span><span style="flex:1"></span><span style="font-size:0.72rem;font-weight:400;opacity:0.7">${c.hint}</span></div>
+      <div class="meal-card__header"><span class="icon">${c.icon}</span><span>${c.title}</span></div>
       <div class="meal-card__body"></div>
     </div>
   `).join('');
