@@ -6,46 +6,69 @@
 <title>每日饭菜搭配 - 早中晚三餐科学搭配</title>
 <style>
   :root {
-    --bg: #fdf6ec;
-    --card-bg: #fffef9;
+    --bg: #f3f1ed;
+    --card-bg: #ffffff;
+    --card-bg-warm: #fffdfa;
     --morning: #ff9a56;
-    --morning-light: #fff3e8;
+    --morning-light: #fff5ed;
     --noon: #4caf7c;
-    --noon-light: #edf7f1;
+    --noon-light: #f0faf3;
     --night: #6c7dd0;
-    --night-light: #eff1fb;
-    --text: #3e3640;
-    --text-light: #6b636e;
-    --border: #e8dfd3;
-    --shadow: 0 2px 12px rgba(60, 50, 40, 0.08);
-    --radius: 14px;
-    --radius-sm: 8px;
+    --night-light: #f2f3fb;
+    --text: #2d2a28;
+    --text-light: #7a7570;
+    --border: rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.08);
+    --radius: 20px;
+    --radius-sm: 12px;
+    --radius-xs: 8px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-    background: linear-gradient(160deg, #fef8f0 0%, #faf5eb 30%, #f3efe7 100%);
-    color: var(--text); min-height: 100vh; line-height: 1.6;
+    background: #f5f3ef; color: var(--text); min-height: 100vh; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
-  .header { text-align: center; padding: 28px 20px 8px; }
+
+  /* ---- Bento Container ---- */
+  .bento-wrap {
+    max-width: 1100px; margin: 0 auto; padding: 20px 20px 36px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .bento-top {
+    display: grid; grid-template-columns: 1fr 2fr; gap: 14px; align-items: start;
+  }
+  .bento-card {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    border: 1px solid var(--border); padding: 16px 18px; transition: box-shadow 0.2s;
+  }
+  .bento-card:hover { box-shadow: var(--shadow-lg); }
+  .bento-card--bare {
+    background: none; border: none; box-shadow: none; padding: 0; border-radius: 0;
+  }
+  .bento-card--bare:hover { box-shadow: none; }
+
+  .header { text-align: center; padding: 10px 0 4px; }
   .header h1 {
-    font-size: 1.9rem; font-weight: 700;
+    font-size: 1.8rem; font-weight: 700;
     background: linear-gradient(135deg, #e07b3c, #c06a30);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text; letter-spacing: 1px;
   }
-  .header .subtitle { color: var(--text-light); margin-top: 2px; font-size: 0.88rem; }
+  .header .subtitle { color: var(--text-light); margin-top: 2px; font-size: 0.84rem; }
 
   /* ---- Diet Mode Selector ---- */
   .diet-bar {
-    display: flex; justify-content: center; gap: 6px; padding: 10px 20px 6px; flex-wrap: wrap;
+    display: flex; flex-wrap: wrap; gap: 6px;
   }
   .diet-pill {
-    font-size: 0.73rem; padding: 5px 13px; border-radius: 20px; border: 1px solid #e0d8c8;
-    background: #fff; cursor: pointer; user-select: none; transition: all 0.18s;
+    font-size: 0.72rem; padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06);
+    background: #fafaf8; cursor: pointer; user-select: none; transition: all 0.18s;
     color: #8b7e70; white-space: nowrap; font-weight: 500;
   }
-  .diet-pill:hover { border-color: #c0b898; background: #fdfaf5; }
+  .diet-pill:hover { border-color: #c0b898; background: #fefdfa; }
   .diet-pill.active {
     background: #4caf7c; color: #fff; border-color: #4caf7c;
     box-shadow: 0 2px 8px rgba(76,175,124,0.25); font-weight: 700;
@@ -56,34 +79,34 @@
 
   /* ---- Action Bar ---- */
   .action-bar {
-    display: flex; justify-content: center; gap: 10px; padding: 6px 20px 14px; flex-wrap: wrap; align-items: center;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
   }
   .btn {
-    padding: 9px 20px; border-radius: 50px; border: none; font-size: 0.88rem;
-    font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+    padding: 8px 18px; border-radius: 50px; border: none; font-size: 0.84rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
   }
   .btn-primary {
     background: linear-gradient(135deg, #f0985c, #e07b3c); color: #fff;
     box-shadow: 0 4px 14px rgba(224, 123, 60, 0.35);
   }
   .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(224, 123, 60, 0.45); }
-  .btn-outline { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
-  .btn-outline:hover { border-color: #d0c5b5; background: #fafaf7; }
+  .btn-outline { background: #fafaf8; color: var(--text); border: 1px solid rgba(0,0,0,0.06); }
+  .btn-outline:hover { border-color: rgba(0,0,0,0.12); background: #fff; }
   .btn-weekly {
-    background: #fff; color: #6c7dd0; border: 1.5px solid #c8cdf0; font-weight: 600;
+    background: #fafaf8; color: #6c7dd0; border: 1px solid #d4d8f2; font-weight: 600;
   }
   .btn-weekly:hover { border-color: #a0a8e0; background: #f8f8ff; }
   .btn-weekly.active { background: #eff1fb; border-color: #6c7dd0; color: #4856a0; box-shadow: 0 0 0 3px rgba(108,125,208,0.1); }
 
   /* ---- Calorie Summary ---- */
   .cal-summary {
-    text-align: center; padding: 0 20px 8px; font-size: 0.82rem; color: #9b8e80;
+    text-align: center; font-size: 0.82rem; color: var(--text-light);
     display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 18px;
   }
   .cal-summary strong { color: var(--text); font-size: 1rem; }
   .cal-summary .cal-tag {
-    display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem;
-    font-weight: 600;
+    display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
   }
   .cal-tag--low { background: #e2f0e2; color: #3d7040; }
   .cal-tag--mid { background: #fef3d8; color: #8a6d30; }
@@ -92,31 +115,39 @@
   /* ---- View Toggle ---- */
   .view-toggle { display: flex; justify-content: center; gap: 0; padding: 0 20px 8px; }
   .view-toggle button {
-    font-size: 0.8rem; padding: 6px 18px; border: 1px solid #d0c8b8; background: #fff;
+    font-size: 0.8rem; padding: 6px 18px; border: 1px solid rgba(0,0,0,0.06); background: #fafaf8;
     cursor: pointer; font-weight: 600; color: #8b7e70; transition: all 0.15s;
   }
   .view-toggle button:first-child { border-radius: 20px 0 0 20px; }
   .view-toggle button:last-child { border-radius: 0 20px 20px 0; }
   .view-toggle button.active { background: #4caf7c; color: #fff; border-color: #4caf7c; }
 
-  /* ---- Meals Grid (Daily) ---- */
+  /* ---- Bento Meal Grid ---- */
   .meals-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 18px; max-width: 1200px; margin: 0 auto; padding: 0 20px 36px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 14px;
   }
   .meal-card {
-    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
-    border: 1px solid var(--border); overflow: visible; transition: transform 0.2s;
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    border: 1px solid var(--border); overflow: visible; transition: transform 0.2s, box-shadow 0.2s;
   }
-  .meal-card:hover { transform: translateY(-2px); }
+  .meal-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  #cardMorning { grid-column: 1; grid-row: 1; }
+  #cardNoon    { grid-column: 2; grid-row: 1; }
+  #cardTreat   { grid-column: 3; grid-row: 1; }
+  #cardNight   { grid-column: 1 / 4; grid-row: 2; }
+
   .meal-card__header {
     padding: 14px 18px; display: flex; align-items: center; gap: 8px;
-    font-weight: 700; font-size: 1.05rem; border-radius: var(--radius) var(--radius) 0 0;
+    font-weight: 700; font-size: 1rem; border-radius: var(--radius) var(--radius) 0 0;
   }
-  .meal-card__header .icon { font-size: 1.3rem; }
-  .meal-card--morning .meal-card__header { background: var(--morning-light); color: #c05a20; border-bottom: 2px solid #ffe0c8; }
-  .meal-card--noon    .meal-card__header { background: var(--noon-light);  color: #2e6b45; border-bottom: 2px solid #c8e8d2; }
-  .meal-card--night   .meal-card__header { background: var(--night-light); color: #4856a0; border-bottom: 2px solid #d4d8f2; }
+  .meal-card__header .icon { font-size: 1.2rem; }
+  .meal-card--morning .meal-card__header { background: var(--morning-light); color: #c05a20; border-bottom: 1px solid #ffe8d6; }
+  .meal-card--noon    .meal-card__header { background: var(--noon-light);  color: #2e6b45; border-bottom: 1px solid #d0eed8; }
+  .meal-card--night   .meal-card__header { background: var(--night-light); color: #4856a0; border-bottom: 1px solid #dde0f4; }
+  .meal-card--treat   .meal-card__header { background: #fef5f8; color: #b05060; border-bottom: 1px solid #f8d4e0; }
   .meal-card__body { padding: 10px 16px 14px; }
 
   /* ---- 3D Flip ---- */
@@ -246,10 +277,6 @@
   }
   .reel-emojis.slowing span { animation-duration: 0.4s; }
   .reel-emojis.stopping span { animation-duration: 0.7s; animation-timing-function: cubic-bezier(0.2,0.9,0.3,1); }
-  .reel-blur {
-    filter: blur(4px) !important;
-    transition: filter 0.15s;
-  }
   .reel-anticipation {
     animation: reelPullDown 0.15s cubic-bezier(0.4,0,0.6,1.5) forwards;
   }
@@ -375,15 +402,33 @@
   .fridge-status.match { color: #3d7040; }
   .fridge-status.none { color: #c0a0a0; }
 
-  .footer { text-align: center; padding: 8px 20px 24px; color: #bfb9b0; font-size: 0.76rem; }
+  .footer { text-align: center; padding: 8px 20px 24px; color: #bfb9b0; font-size: 0.74rem; }
 
+  @media (max-width: 900px) {
+    .bento-top { grid-template-columns: 1fr; }
+    .meals-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+    }
+    #cardMorning { grid-column: 1; grid-row: 1; }
+    #cardNoon    { grid-column: 2; grid-row: 1; }
+    #cardTreat   { grid-column: 1; grid-row: 2; }
+    #cardNight   { grid-column: 2; grid-row: 2; }
+  }
   @media (max-width: 768px) {
     .weekly-grid { grid-template-columns: repeat(4, 1fr); }
     .week-col:nth-child(n+5) { margin-top: 8px; }
   }
-  @media (max-width: 420px) {
+  @media (max-width: 560px) {
     .header h1 { font-size: 1.4rem; }
-    .meals-grid { grid-template-columns: 1fr; padding: 0 10px 28px; }
+    .meals-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+    #cardMorning, #cardNoon, #cardNight, #cardTreat {
+      grid-column: 1; grid-row: auto;
+    }
+    .bento-card { padding: 12px 14px; }
     .weekly-grid { grid-template-columns: repeat(2, 1fr); }
     .flip-front::after { display: none; }
     .flip-back { padding: 10px 12px; }
@@ -401,26 +446,33 @@
   <p class="subtitle">科学搭配三餐，营养均衡每一天</p>
 </div>
 
-<!-- 饮食模式选择 (多选) -->
-<div class="diet-bar" id="dietBar">
-  <span class="diet-pill active" data-mode="balanced" onclick="toggleDietMode('balanced', this)">🍽️ 均衡</span>
-  <span class="diet-pill" data-mode="lowcal" onclick="toggleDietMode('lowcal', this)">🥗 减脂</span>
-  <span class="diet-pill" data-mode="muscle" onclick="toggleDietMode('muscle', this)">💪 增肌</span>
-  <span class="diet-pill" data-mode="vegan" onclick="toggleDietMode('vegan', this)">🌱 纯素</span>
-  <span class="diet-pill" data-mode="glutenfree" onclick="toggleDietMode('glutenfree', this)">🌾 无麸质</span>
-  <span class="diet-pill" data-mode="nospice" onclick="toggleDietMode('nospice', this)">🚫 免辣</span>
-  <span class="diet-pill" data-mode="spicy" onclick="toggleDietMode('spicy', this)">🌶️ 嗜辣</span>
-</div>
-<div class="diet-hint">💡 可多选组合 · 免辣/嗜辣互斥 · 选任意标签自动取消均衡</div>
+<div class="bento-wrap">
 
-<div class="action-bar">
-  <button class="btn btn-primary" onclick="randomizeAll()">🎲 每日饭菜抽选</button>
-  <button class="btn btn-outline fridge-toggle-btn" id="fridgeToggle" onclick="toggleFridge()">🧊 冰箱余粮<span class="badge" id="fridgeBadge"></span></button>
-  <button class="btn btn-outline" onclick="randomizeMeal('morning')">重抽早餐</button>
-  <button class="btn btn-outline" onclick="randomizeMeal('noon')">重抽午饭</button>
-  <button class="btn btn-outline" onclick="randomizeMeal('night')">重抽晚饭</button>
-  <button class="btn btn-outline" onclick="randomizeMeal('treat')">重抽甜品饮品</button>
-  <button class="btn btn-weekly" id="btnWeekly" onclick="toggleWeeklyView()">📅 周计划</button>
+<!-- 顶部 bento: 饮食模式 + 操作按钮 -->
+<div class="bento-top">
+  <div class="bento-card">
+    <div class="diet-bar" id="dietBar">
+      <span class="diet-pill active" data-mode="balanced" onclick="toggleDietMode('balanced', this)">🍽️ 均衡</span>
+      <span class="diet-pill" data-mode="lowcal" onclick="toggleDietMode('lowcal', this)">🥗 减脂</span>
+      <span class="diet-pill" data-mode="muscle" onclick="toggleDietMode('muscle', this)">💪 增肌</span>
+      <span class="diet-pill" data-mode="vegan" onclick="toggleDietMode('vegan', this)">🌱 纯素</span>
+      <span class="diet-pill" data-mode="glutenfree" onclick="toggleDietMode('glutenfree', this)">🌾 无麸质</span>
+      <span class="diet-pill" data-mode="nospice" onclick="toggleDietMode('nospice', this)">🚫 免辣</span>
+      <span class="diet-pill" data-mode="spicy" onclick="toggleDietMode('spicy', this)">🌶️ 嗜辣</span>
+    </div>
+    <div class="diet-hint">💡 可多选组合 · 免辣/嗜辣互斥 · 选任意标签自动取消均衡</div>
+  </div>
+  <div class="bento-card">
+    <div class="action-bar">
+      <button class="btn btn-primary" onclick="randomizeAll()">🎲 每日饭菜抽选</button>
+      <button class="btn btn-outline fridge-toggle-btn" id="fridgeToggle" onclick="toggleFridge()">🧊 冰箱余粮<span class="badge" id="fridgeBadge"></span></button>
+      <button class="btn btn-outline" onclick="randomizeMeal('morning')">重抽早餐</button>
+      <button class="btn btn-outline" onclick="randomizeMeal('noon')">重抽午饭</button>
+      <button class="btn btn-outline" onclick="randomizeMeal('night')">重抽晚饭</button>
+      <button class="btn btn-outline" onclick="randomizeMeal('treat')">重抽甜品饮品</button>
+      <button class="btn btn-weekly" id="btnWeekly" onclick="toggleWeeklyView()">📅 周计划</button>
+    </div>
+  </div>
 </div>
 
 <div class="view-toggle" id="viewToggle" style="display:none">
@@ -428,13 +480,10 @@
   <button onclick="setViewMode('weekly')">📅 周计划视图</button>
 </div>
 
-<div style="text-align:center;padding:0 20px 6px;display:none" id="weeklyActions">
+<div style="text-align:center;padding:0;display:none" id="weeklyActions">
   <button class="btn btn-outline" onclick="generateWeek()" style="font-size:0.82rem;padding:7px 18px;">🎲 生成整周菜单</button>
   <button class="btn btn-outline" onclick="clearWeek()" style="font-size:0.82rem;padding:7px 18px;">🗑 清空周计划</button>
 </div>
-
-<!-- 热量摘要 -->
-<div class="cal-summary" id="calSummary"></div>
 
 <!-- 冰箱余粮面板 -->
 <div class="fridge-panel" id="fridgePanel">
@@ -452,6 +501,9 @@
   </div>
 </div>
 
+<!-- 热量摘要 -->
+<div class="bento-card cal-summary" id="calSummary"></div>
+
 <!-- 单日视图 -->
 <div class="meals-grid" id="mealsGrid"></div>
 
@@ -459,6 +511,8 @@
 <div class="weekly-container" id="weeklyContainer">
   <div class="weekly-grid" id="weeklyGrid"></div>
 </div>
+
+</div><!-- /bento-wrap -->
 
 <div class="footer">菜品库持续更新中 · 每日随机搭配 · 仅供参考</div>
 
@@ -1695,9 +1749,8 @@ function spinReel(cardId, finalRenderFn, spinDuration, startDelay) {
     let emojiInterval;
 
     setTimeout(() => {
-      // Phase 2: 高速旋转 — 表情交替 + 动态模糊
+      // Phase 2: 高速旋转 — 表情交替
       card.classList.remove('reel-anticipation');
-      body.classList.add('reel-blur');
       // 启动表情刷新
       emojiInterval = setInterval(() => {
         const spans = emojiGrid.querySelectorAll('span');
@@ -1733,13 +1786,8 @@ function spinReel(cardId, finalRenderFn, spinDuration, startDelay) {
               emojiGrid.classList.add('stopping');
             }
           }, 350);
-          body.classList.remove('reel-blur');
-          body.style.filter = 'blur(1.5px)';
-          body.style.transition = 'filter 0.25s';
-          // Phase 4: 定格 — 清除模糊，露出最终菜名
+          // Phase 4: 定格 — 露出最终菜名
           setTimeout(() => {
-            body.style.filter = 'blur(0)';
-            body.style.transition = 'filter 0.4s ease';
             if (overlay) overlay.remove();
             finalRenderFn();
             body.classList.add('reel-bounce-in');
