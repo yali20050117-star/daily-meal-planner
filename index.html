@@ -222,6 +222,104 @@
     100% { transform: scale(1); box-shadow: var(--shadow); }
   }
 
+  /* ---- Reel-based slot machine ---- */
+  .meal-card.reel-active { position: relative; overflow: hidden; }
+  .meal-card.reel-active .meal-card__body { position: relative; }
+  .reel-overlay {
+    position: absolute; inset: 0; z-index: 10; border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden; pointer-events: none;
+  }
+  .reel-stripes {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg,
+      rgba(180,210,180,0.9) 0px, rgba(180,210,180,0.9) 10px,
+      rgba(250,210,210,0.75) 10px, rgba(250,210,210,0.75) 18px,
+      rgba(255,240,200,0.85) 18px, rgba(255,240,200,0.85) 26px,
+      rgba(240,220,240,0.7) 26px, rgba(240,220,240,0.7) 32px
+    );
+    animation: reelRace 0.06s linear infinite;
+    will-change: background-position;
+  }
+  @keyframes reelRace {
+    0% { background-position-y: 0; }
+    100% { background-position-y: -104px; }
+  }
+  .reel-stripes.slowing { animation-duration: 0.18s; }
+  .reel-stripes.stopping { animation-duration: 0.5s; animation-timing-function: cubic-bezier(0.2,0.9,0.3,1); }
+  .reel-anticipation {
+    animation: reelPullDown 0.15s cubic-bezier(0.4,0,0.6,1.5) forwards;
+  }
+  @keyframes reelPullDown {
+    0% { transform: translateY(0); filter: brightness(1); }
+    50% { transform: translateY(6px); filter: brightness(0.92); }
+    100% { transform: translateY(2px); filter: brightness(1); }
+  }
+  .reel-bounce-in {
+    animation: reelBounceIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+  }
+  @keyframes reelBounceIn {
+    0% { transform: scale(0.92); opacity: 0; filter: blur(2px); }
+    60% { transform: scale(1.04); opacity: 1; filter: blur(0); }
+    80% { transform: scale(0.97); }
+    100% { transform: scale(1); opacity: 1; filter: blur(0); }
+  }
+  .reel-snap {
+    animation: reelSnap 0.15s ease;
+  }
+  @keyframes reelSnap {
+    0% { transform: translateY(-2px); }
+    50% { transform: translateY(2px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* ---- Celebration glow ---- */
+  .meal-card.celebrate {
+    animation: celebrateGlow 0.8s ease-in-out;
+    box-shadow: 0 0 20px rgba(76,200,120,0.4), 0 0 60px rgba(76,200,120,0.2);
+    border-color: #4caf7c;
+  }
+  @keyframes celebrateGlow {
+    0% { box-shadow: 0 0 0px rgba(76,200,120,0); border-color: var(--border); }
+    30% { box-shadow: 0 0 30px rgba(76,200,120,0.5), 0 0 80px rgba(76,200,120,0.25); border-color: #4caf7c; }
+    50% { box-shadow: 0 0 15px rgba(76,200,120,0.3); }
+    70% { box-shadow: 0 0 28px rgba(76,200,120,0.4), 0 0 70px rgba(76,200,120,0.2); }
+    100% { box-shadow: var(--shadow); border-color: var(--border); }
+  }
+  .celebration-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, #4caf7c, #66d08a); color: #fff;
+    padding: 10px 28px; border-radius: 30px; font-weight: 700; font-size: 0.9rem;
+    z-index: 999; pointer-events: none;
+    box-shadow: 0 4px 20px rgba(76,175,124,0.4);
+    animation: toastIn 2.5s ease forwards;
+  }
+  @keyframes toastIn {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    70% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  }
+  .particle {
+    position: absolute; pointer-events: none; z-index: 20;
+    font-size: 0.85rem; font-weight: 700;
+    animation: particleBurst 0.7s ease-out forwards;
+  }
+  @keyframes particleBurst {
+    0% { opacity: 1; transform: translate(0,0) scale(0.3); }
+    40% { opacity: 1; transform: translate(var(--px),var(--py)) scale(1.3); }
+    100% { opacity: 0; transform: translate(var(--px2),var(--py2)) scale(0.4); }
+  }
+
+  /* ---- Fridge badge pop ---- */
+  .fridge-badge.pop {
+    animation: badgePop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  @keyframes badgePop {
+    0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+    60% { transform: scale(1.4) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
   /* ---- Diet multi-select hint ---- */
   .diet-hint {
     text-align: center; padding: 0 20px 4px; font-size: 0.68rem; color: #bfb9b0;
@@ -1519,58 +1617,299 @@ function toggleFlip(row, e) {
   }
 }
 
-// ===================== 老虎机动画 =====================
+// ===================== 转轮老虎机动画系统 =====================
 
-function slotAnimate(cardIds, callback, delay) {
-  // 对每个卡片快速切换随机菜品 6 帧
-  const frames = 6;
-  const frameInterval = 80;
-  let count = 0;
+const REEL_SPEEDS = {
+  fast: { duration: 80, animSpeed: '0.05s' },
+  mid:  { duration: 140, animSpeed: '0.12s' },
+  slow: { duration: 220, animSpeed: '0.4s' },
+};
 
-  // 保存原始数据
-  const orig = { ...currentDay };
+// ===================== 转轮老虎机动画 =====================
 
-  function tick() {
-    if (count >= frames) {
-      // 动画结束，恢复最终结果
-      currentDay = callback();
-      renderAll();
-      // settle 动画
-      cardIds.forEach(id => {
-        const card = document.getElementById(id);
-        if (card) { card.classList.add('settled'); setTimeout(()=>card.classList.remove('settled'), 400); }
-      });
-      return;
-    }
-    // 快闪随机
-    const temp = generateDayMenu();
-    currentDay = temp;
-    renderAllSilent();
-    count++;
-    setTimeout(tick, frameInterval);
+const CARD_MEAL_MAP = {
+  cardMorning: 'breakfast',
+  cardNoon: 'lunch',
+  cardNight: 'dinner',
+  cardTreat: 'treat',
+};
+
+function getRandomDishForMeal(mealType) {
+  switch (mealType) {
+    case 'breakfast': return pick(DISH_DB.breakfast);
+    case 'lunch': return pick(DISH_DB.lunchMeat); // just for flash
+    case 'dinner': return pick(DISH_DB.dinnerVeggie); // just for flash
+    case 'treat': return pick(DISH_DB.desserts); // just for flash
+    default: return null;
   }
-
-  setTimeout(tick, delay || 0);
 }
 
-// 安静渲染（不做cal更新动画）
-function renderAllSilent() {
+// 单卡片快速闪动（不影响其他卡片）
+function flashCardOnce(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const body = card.querySelector('.meal-card__body');
+  if (!body) return;
+  body.style.opacity = '0.3';
+  body.style.filter = 'blur(1px)';
+  body.style.transition = 'opacity 0.07s, filter 0.07s';
+  setTimeout(() => {
+    body.style.opacity = '1';
+    body.style.filter = 'blur(0)';
+  }, 70);
+}
+
+// 核心：单个转轮旋转
+function spinReel(cardId, finalRenderFn, spinDuration, startDelay) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const body = card.querySelector('.meal-card__body');
+
+  setTimeout(() => {
+    // Phase 1: 下拉预备 (100ms)
+    card.classList.add('reel-anticipation');
+    // 添加条纹覆盖层
+    const overlay = document.createElement('div');
+    overlay.className = 'reel-overlay';
+    overlay.innerHTML = '<div class="reel-stripes"></div>';
+    body.appendChild(overlay);
+
+    setTimeout(() => {
+      // Phase 2: 高速旋转
+      card.classList.remove('reel-anticipation');
+      body.style.filter = 'blur(3px)';
+      body.style.transition = 'filter 0.1s';
+      // 快速闪烁内容
+      let flashCount = 0;
+      const flashTotal = Math.floor(spinDuration / 60);
+      const flashInterval = setInterval(() => {
+        // 只闪当前卡片，不影响其他卡片
+        const mealType = CARD_MEAL_MAP[cardId];
+        if (mealType) {
+          const dish = getRandomDishForMeal(mealType);
+          if (dish) {
+            // 用该meal对应的渲染方式只更新这一个卡片
+            renderOneCard(cardId, dish);
+          }
+        }
+        flashCount++;
+        if (flashCount >= flashTotal) {
+          clearInterval(flashInterval);
+          // Phase 3: 减速
+          const stripes = overlay.querySelector('.reel-stripes');
+          if (stripes) {
+            stripes.classList.add('slowing');
+            setTimeout(() => stripes.classList.add('stopping'), 150);
+          }
+          body.style.filter = 'blur(1px)';
+          // Phase 4: 定格
+          setTimeout(() => {
+            body.style.filter = 'blur(0)';
+            body.style.transition = 'filter 0.3s';
+            if (overlay) overlay.remove();
+            // 渲染最终结果
+            finalRenderFn();
+            // 弹入 + 卡嗒
+            body.classList.add('reel-bounce-in');
+            card.classList.add('reel-snap');
+            setTimeout(() => {
+              body.classList.remove('reel-bounce-in');
+              card.classList.remove('reel-snap');
+            }, 500);
+          }, 350);
+        }
+      }, 60);
+    }, 100); // anticipation duration
+  }, startDelay || 0);
+}
+
+// 只渲染单个卡片
+function renderOneCard(cardId, dish) {
+  if (!dish) return;
   const d = currentDay;
-  renderCard('cardMorning', [{ label:'早餐', labelClass:'dish-label--bf', name:d.breakfast?.name||'', desc:d.breakfast?.desc||'' }], 'breakfast');
-  if (d.lunchMeatItem) renderCard('cardNoon', [
-    { label:'荤菜', labelClass:'dish-label--meat',   name:d.lunchMeatItem.name,    desc:d.lunchMeatItem.desc },
-    { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'', desc:d.lunchVeggieItem?.desc||'' },
-    { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'', desc:d.lunchStapleItem?.desc||'' },
-  ], 'lunch');
-  if (d.dinnerVeggieItem) renderCard('cardNight', [
-    { label:'蔬菜', labelClass:'dish-label--veggie', name:d.dinnerVeggieItem.name, desc:d.dinnerVeggieItem.desc },
-    { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem?.name||'',   desc:d.dinnerSoupItem?.desc||'' },
-    { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem?.name||'', desc:d.dinnerStapleItem?.desc||'' },
-  ], 'dinner');
-  if (d.dessertItem) renderCard('cardTreat', [
-    { label:'甜品', labelClass:'dish-label--dessert', name:d.dessertItem?.name||'', desc:d.dessertItem?.desc||'' },
-    { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
-  ], 'treat');
+  switch (cardId) {
+    case 'cardMorning':
+      renderCard('cardMorning', [
+        { label:'早餐', labelClass:'dish-label--bf', name:dish.name||'', desc:dish.desc||'' },
+      ], 'breakfast');
+      break;
+    case 'cardNoon': {
+      // 对于午饭，dish是随机荤菜名，保持素菜和主食不变
+      const meatDish = dish;
+      renderCard('cardNoon', [
+        { label:'荤菜', labelClass:'dish-label--meat',   name:meatDish.name||'',    desc:meatDish.desc||'' },
+        { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'',  desc:d.lunchVeggieItem?.desc||'' },
+        { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'',  desc:d.lunchStapleItem?.desc||'' },
+      ], 'lunch');
+      break;
+    }
+    case 'cardNight':
+      renderCard('cardNight', [
+        { label:'蔬菜', labelClass:'dish-label--veggie', name:dish.name||'', desc:dish.desc||'' },
+        { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem?.name||'',   desc:d.dinnerSoupItem?.desc||'' },
+        { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem?.name||'', desc:d.dinnerStapleItem?.desc||'' },
+      ], 'dinner');
+      break;
+    case 'cardTreat':
+      renderCard('cardTreat', [
+        { label:'甜品', labelClass:'dish-label--dessert', name:dish.name||'', desc:dish.desc||'' },
+        { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
+      ], 'treat');
+      break;
+  }
+}
+
+// 全部转轮：阶梯启动 + 异步定格
+function spinAllReels() {
+  const sequence = [
+    { id: 'cardMorning', duration: 600, delay: 0 },
+    { id: 'cardNoon',    duration: 750, delay: 80 },
+    { id: 'cardNight',   duration: 900, delay: 160 },
+    { id: 'cardTreat',   duration: 700, delay: 240 },
+  ];
+
+  const newDay = generateDayMenu();
+  let stoppedCount = 0;
+
+  sequence.forEach(({ id, duration, delay }) => {
+    spinReel(id, () => {
+      // 写入最终结果
+      switch (id) {
+        case 'cardMorning': currentDay.breakfast = newDay.breakfast; break;
+        case 'cardNoon':
+          currentDay.lunchMeatItem = newDay.lunchMeatItem;
+          currentDay.lunchVeggieItem = newDay.lunchVeggieItem;
+          currentDay.lunchStapleItem = newDay.lunchStapleItem;
+          break;
+        case 'cardNight':
+          currentDay.dinnerVeggieItem = newDay.dinnerVeggieItem;
+          currentDay.dinnerSoupItem = newDay.dinnerSoupItem;
+          currentDay.dinnerStapleItem = newDay.dinnerStapleItem;
+          break;
+        case 'cardTreat':
+          currentDay.dessertItem = newDay.dessertItem;
+          currentDay.drinkItem = newDay.drinkItem;
+          break;
+      }
+      // 渲染最终结果
+      renderFinalCard(id);
+      stoppedCount++;
+      // 全部定格后触发庆祝
+      if (stoppedCount >= sequence.length) {
+        setTimeout(() => triggerCelebration(), 300);
+        updateCalSummary();
+      }
+    }, duration, delay);
+  });
+}
+
+function renderFinalCard(cardId) {
+  const d = currentDay;
+  switch (cardId) {
+    case 'cardMorning':
+      renderCard('cardMorning', [
+        { label:'早餐', labelClass:'dish-label--bf', name:d.breakfast?.name||'', desc:d.breakfast?.desc||'' },
+      ], 'breakfast');
+      break;
+    case 'cardNoon':
+      renderCard('cardNoon', [
+        { label:'荤菜', labelClass:'dish-label--meat',   name:d.lunchMeatItem?.name||'',    desc:d.lunchMeatItem?.desc||'' },
+        { label:'素菜', labelClass:'dish-label--veggie', name:d.lunchVeggieItem?.name||'',  desc:d.lunchVeggieItem?.desc||'' },
+        { label:'主食', labelClass:'dish-label--staple', name:d.lunchStapleItem?.name||'',  desc:d.lunchStapleItem?.desc||'' },
+      ], 'lunch');
+      break;
+    case 'cardNight':
+      renderCard('cardNight', [
+        { label:'蔬菜', labelClass:'dish-label--veggie', name:d.dinnerVeggieItem?.name||'', desc:d.dinnerVeggieItem?.desc||'' },
+        { label:'汤品', labelClass:'dish-label--soup',   name:d.dinnerSoupItem?.name||'',   desc:d.dinnerSoupItem?.desc||'' },
+        { label:'主食', labelClass:'dish-label--staple', name:d.dinnerStapleItem?.name||'', desc:d.dinnerStapleItem?.desc||'' },
+      ], 'dinner');
+      break;
+    case 'cardTreat':
+      renderCard('cardTreat', [
+        { label:'甜品', labelClass:'dish-label--dessert', name:d.dessertItem?.name||'', desc:d.dessertItem?.desc||'' },
+        { label:'饮品', labelClass:'dish-label--drink',   name:d.drinkItem?.name||'',   desc:d.drinkItem?.desc||'' },
+      ], 'treat');
+      break;
+  }
+}
+
+// 庆祝特效
+function triggerCelebration() {
+  // 检查是否命中饮食偏好
+  const dietMatch = !dietModes.has('balanced') && dietModes.size > 0;
+  // 检查是否有冰箱匹配
+  let fridgeMatchCount = 0;
+  if (isFridgeMode()) {
+    const items = [
+      currentDay.breakfast, currentDay.lunchMeatItem, currentDay.lunchVeggieItem, currentDay.lunchStapleItem,
+      currentDay.dinnerVeggieItem, currentDay.dinnerSoupItem, currentDay.dinnerStapleItem,
+      currentDay.dessertItem, currentDay.drinkItem,
+    ];
+    for (const item of items) {
+      if (!item || !item.name) continue;
+      const details = getDishDetails(item.name, '');
+      const tokens = getDishKeywordTokens(item.name, details);
+      for (const t of tokens) { if (fridgeSelection.has(t)) { fridgeMatchCount++; break; } }
+    }
+  }
+
+  // 绿光霓虹边框
+  ['cardMorning','cardNoon','cardNight','cardTreat'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) {
+      card.classList.add('celebrate');
+      setTimeout(() => card.classList.remove('celebrate'), 1000);
+    }
+  });
+
+  // Toast 消息
+  const toast = document.createElement('div');
+  toast.className = 'celebration-toast';
+  let msg = '🎉 今日完美菜单已送达！';
+  if (dietMatch) msg = '✨ 完美搭配！符合你的饮食偏好！';
+  if (fridgeMatchCount >= 3) msg = '🧊 冰箱清库大师！食材充分利用！';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2600);
+
+  // 冰箱匹配粒子
+  if (fridgeMatchCount > 0) {
+    setTimeout(() => spawnFridgeParticles(), 400);
+  }
+
+  // 弹冰箱badge
+  document.querySelectorAll('.fridge-badge').forEach(b => {
+    b.classList.add('pop');
+    setTimeout(() => b.classList.remove('pop'), 500);
+  });
+}
+
+function spawnFridgeParticles() {
+  const cards = ['cardMorning','cardNoon','cardNight','cardTreat'];
+  cards.forEach(cardId => {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const badges = card.querySelectorAll('.fridge-badge');
+    badges.forEach(badge => {
+      for (let i = 0; i < 3; i++) {
+        const p = document.createElement('span');
+        p.className = 'particle';
+        p.textContent = '✨';
+        p.style.left = (badge.offsetLeft + Math.random() * 30) + 'px';
+        p.style.top = (badge.offsetTop) + 'px';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30 + Math.random() * 40;
+        p.style.setProperty('--px', Math.cos(angle) * dist * 0.5 + 'px');
+        p.style.setProperty('--py', Math.sin(angle) * dist * 0.5 - 20 + 'px');
+        p.style.setProperty('--px2', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--py2', Math.sin(angle) * dist - 10 + 'px');
+        card.appendChild(p);
+        setTimeout(() => p.remove(), 750);
+      }
+    });
+  });
 }
 
 // ===================== 按钮交互 =====================
@@ -1582,22 +1921,21 @@ function randomizeAll() {
   });
   const btn = document.querySelector('.btn-primary');
   if (btn) { btn.style.transform='scale(0.95)'; setTimeout(()=>{btn.style.transform='';},120); }
-  // 老虎机动画
-  slotAnimate(['cardMorning','cardNoon','cardNight','cardTreat'], () => generateDayMenu(), 0);
-  setTimeout(() => updateCalSummary(), 550);
+  spinAllReels();
 }
 
 function randomizeMeal(meal) {
   const prefixes = {morning:'cardMorning',noon:'cardNoon',night:'cardNight',treat:'cardTreat'};
-  const prefix = prefixes[meal] || 'cardMorning';
-  const card = document.getElementById(prefix);
+  const cardId = prefixes[meal] || 'cardMorning';
+  const card = document.getElementById(cardId);
   if (card) card.querySelectorAll('.flip-inner.flipped').forEach(el => {
     el.classList.remove('flipped'); el.style.height='';
     const r=el.closest('.flip-row'); if(r) r.style.margin='';
   });
   if (!currentDay || !currentDay.breakfast) currentDay = generateDayMenu();
 
-  slotAnimate([prefix], () => {
+  // 单卡片转轮
+  spinReel(cardId, () => {
     switch (meal) {
       case 'morning': currentDay.breakfast = pick(DISH_DB.breakfast); break;
       case 'noon':
@@ -1615,16 +1953,18 @@ function randomizeMeal(meal) {
         currentDay.drinkItem = smartPick(DISH_DB.drinks, 'drink');
         break;
     }
-    return currentDay;
-  }, 0);
-  setTimeout(() => updateCalSummary(), 550);
+    renderFinalCard(cardId);
+    // 单卡spin后轻微庆祝
+    const c = document.getElementById(cardId);
+    if (c) { c.classList.add('settled'); setTimeout(()=>c.classList.remove('settled'),450); }
+    updateCalSummary();
+  }, meal === 'treat' ? 500 : 650, 0);
 }
 
 // ===================== 冰箱消耗 =====================
 
 function consumeFridge() {
   if (!isFridgeMode()) return;
-  // 收集当前菜单中所有用到的冰箱食材
   const usedIngredientIds = new Set();
   const items = [
     currentDay.breakfast,
@@ -1644,11 +1984,8 @@ function consumeFridge() {
     alert('当前菜单中没有用到冰箱中的食材，无需消耗。');
     return;
   }
-  // 移除用掉的食材
   for (const id of usedIngredientIds) fridgeSelection.delete(id);
-  // 更新UI
   renderFridgeTags();
-  // 闪烁冰箱按钮提醒
   const btn = document.getElementById('fridgeToggle');
   if (btn) {
     btn.style.boxShadow = '0 0 0 6px rgba(90,154,106,0.2)';
