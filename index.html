@@ -1778,14 +1778,15 @@ function spinAllReels() {
   let stoppedCount = 0;
   const total = 4;
 
+  // 错开定格: 早餐→+0.75s午饭→+1.5s晚饭→+2.25s甜品
   const reels = [
-    { id: 'cardMorning', win: newDay.breakfast.name, dur: 1100,
+    { id: 'cardMorning', win: newDay.breakfast.name, dur: 800,
       render: () => { currentDay.breakfast = newDay.breakfast; renderFinalCard('cardMorning'); } },
-    { id: 'cardNoon', win: newDay.lunchMeatItem.name, dur: 1600,
+    { id: 'cardNoon', win: newDay.lunchMeatItem.name, dur: 1550,
       render: () => { currentDay.lunchMeatItem = newDay.lunchMeatItem; currentDay.lunchVeggieItem = newDay.lunchVeggieItem; currentDay.lunchStapleItem = newDay.lunchStapleItem; renderFinalCard('cardNoon'); } },
-    { id: 'cardNight', win: newDay.dinnerVeggieItem.name, dur: 2100,
+    { id: 'cardNight', win: newDay.dinnerVeggieItem.name, dur: 2300,
       render: () => { currentDay.dinnerVeggieItem = newDay.dinnerVeggieItem; currentDay.dinnerSoupItem = newDay.dinnerSoupItem; currentDay.dinnerStapleItem = newDay.dinnerStapleItem; renderFinalCard('cardNight'); } },
-    { id: 'cardTreat', win: newDay.dessertItem.name, dur: 2600,
+    { id: 'cardTreat', win: newDay.dessertItem.name, dur: 3050,
       render: () => { currentDay.dessertItem = newDay.dessertItem; currentDay.drinkItem = newDay.drinkItem; renderFinalCard('cardTreat'); } },
   ];
 
